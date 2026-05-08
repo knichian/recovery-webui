@@ -258,7 +258,7 @@ TEAM_ID,millis,count,altp,temp,umi,p,gp,gr,gy,ap,ar,ay,hora,data,alt,lat,lon,sat
 
 ### Arquivo de Log (CSV)
 
-Formato salvo em `logs/log.csv`:
+Formato salvo em `web/static/logs/log.csv`:
 
 ```csv
 NOW,TEAM_ID,millis,count,altp,temp,umi,p,gp,gr,gy,ap,ar,ay,hora,data,alt,lat,lon,sat,pqd,rssi

@@ -75,19 +75,20 @@ pip install ipython
 ### Backend (Python)
 
 ```
-app/
+src/
 ├── app.py                  # Aplicação Flask principal
 │   ├── Flask app initialization
 │   ├── Routes (/, /satellite)
 │   ├── SocketIO event handlers
 │   └── background_thread()
 │
-├── module/
+├── modules/
 │   ├── __init__.py        # Importações do módulo
 │   └── SerialCOM.py       # Comunicação serial
 │       ├── class base_com
 │       └── def list_ports()
 │
+web/
 ├── templates/             # Templates Jinja2
 │   ├── base.html         # Template base
 │   ├── index.html        # Página do foguete
@@ -96,11 +97,10 @@ app/
 ├── static/               # Arquivos estáticos
 │   ├── css/
 │   │   └── app.css      # Estilos customizados
-│   └── js/
-│       └── app.js       # Lógica do cliente
-│
-└── logs/
-    └── log.csv          # Logs de telemetria
+│   ├── js/
+│   │   └── app.js       # Lógica do cliente
+│   └── logs/
+│       └── log.csv      # Logs de telemetria
 ```
 
 ### Frontend (JavaScript)
@@ -143,23 +143,23 @@ def calcAlt(p,t):
 
 ```bash
 # Formatar todos os arquivos Python
-black app/
+black src/
 
 # Verificar sem modificar
-black --check app/
+black --check src/
 
 # Formatar arquivo específico
-black app/app.py
+black src/app.py
 ```
 
 #### Linting com Flake8
 
 ```bash
 # Verificar todos os arquivos
-flake8 app/
+flake8 src/
 
 # Ignorar certos erros (opcional)
-flake8 --ignore=E501,W503 app/
+flake8 --ignore=E501,W503 src/
 ```
 
 ### JavaScript (Frontend)
@@ -415,7 +415,7 @@ from flask import jsonify
 def get_history():
     """Retorna histórico de dados do log."""
     try:
-        with open('logs/log.csv', 'r') as f:
+        with open('web/static/logs/log.csv', 'r') as f:
             lines = f.readlines()[1:]  # Pula header
             data = [line.strip().split(',') for line in lines]
         return jsonify({'success': True, 'data': data})

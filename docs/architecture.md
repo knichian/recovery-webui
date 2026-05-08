@@ -65,7 +65,7 @@ O Recovery WebUI segue uma arquitetura cliente-servidor com comunicação em tem
   - Coordenar comunicação serial
   - Registrar dados em CSV
 
-#### SerialCOM Module (`module/SerialCOM.py`)
+#### SerialCOM Module (`src/modules/SerialCOM.py`)
 
 - **Função**: Abstração da comunicação serial
 - **Responsabilidades**:
@@ -321,7 +321,7 @@ background_thread processa
     ↓
 Adiciona timestamp NOW
     ↓
-Escreve em logs/log.csv
+Escreve em web/static/logs/log.csv
     ↓
 Formato: NOW,TEAM_ID,millis,count,...
 ```
@@ -367,7 +367,7 @@ Linha de exemplo:
 
 ### Localização
 
-- **Desenvolvimento**: `app/logs/log.csv`
+- **Desenvolvimento**: `web/static/logs/log.csv`
 - **Criado em**: Inicialização da background_thread
 - **Modo**: Append ('a') para cada nova entrada
 
