@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<main>
+  <div class="card">
+    <div id="mapDIV"></div>
+
+    <!-- Área para dados do satélite (página dedicada) -->
+    
+    <table>
+      <tr>
+        <th>Horário</th>
+        <th>Latitude</th>
+        <th>Longitude</th>
+        <th>Altura</th>
+        <th>Satélite</th>
+        <th>Temperatura (°C)</th>
+        <th>Umidade (%)</th>
+        <th>Pressão</th>
+        <th>RSSI</th>
+      </tr>
+    </table>
+    <table id="satTable"></table>
+  </div>
+</main>
+{% endblock %}
