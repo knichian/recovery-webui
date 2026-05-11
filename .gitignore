@@ -1,5 +1,7 @@
 # Python
 __pycache__/
+app/__pycache__
+app/module/__pycache__
 *.py[cod]
 *$py.class
 *.so
@@ -27,6 +29,7 @@ venv/
 ENV/
 env/
 .venv
+app/.venv
 
 # IDEs
 .vscode/
@@ -88,3 +91,4 @@ site/
 
 # Obsidian 
 .obsidian/
+
