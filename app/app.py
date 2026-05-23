@@ -5,6 +5,38 @@ from threading import Lock
 from module import *
 from datetime import datetime
 import webbrowser
+import logging
+
+logger = logging.getLogger("Flask-App")
+
+enable_debug_logs: bool = False
+
+match enable_debug_logs:
+    case True:
+        logger.setLevel(logging.DEBUG)
+    case False:
+        logger.setLevel(logging.INFO)
+
+console_handler = logging.StreamHandler()
+file_handler = logging.FileHandler("flask_app.log", mode="a", encoding="utf-8")
+
+default_formater = logging.Formatter(
+            "[%(asctime)s] %(levelname)-8s (%(name)s): %(message)s",
+            style = "%",
+            datefmt="%Y-%m-%d %H:%M",
+        )
+
+console_handler.setFormatter(default_formater)
+file_handler.setFormatter(default_formater)
+
+logger.addHandler(console_handler)
+logger.addHandler(file_handler)
+
+logger.info("")
+logger.info("---------------------")
+logger.info("--- NOVA EXECUÇÃO ---")
+logger.info("---------------------")
+logger.info("")
 
 thread = None
 thread_lock = Lock()
