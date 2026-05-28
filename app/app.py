@@ -6,6 +6,7 @@ from module import *
 from datetime import datetime
 import webbrowser
 import logging
+import time
 
 logger = logging.getLogger("Flask-App")
 
@@ -161,14 +162,28 @@ def open_browser(port):
 if __name__ == "__main__":
     ports = list_ports()
 
+    # if not ports:
+        # print("Nenhuma porta serial encontrada.")
+        # exit(1)
+
+    intervalo_verificacao_portas = 1
+    qtd_tentativas = 15
+
+    while not ports and qtd_tentativas:
+        logger.warning(f"Nenhuma serial encontrada, verificando novamente")
+        time.sleep(intervalo_verificacao_portas)
+        ports = list_ports()
+        qtd_tentativas -= 1
+
     if not ports:
-        print("Nenhuma porta serial encontrada.")
-        exit(1)
+        logger.critical("Nenhuma serial encontrada, desligando")
+        exit(-1)
 
     print("Portas seriais disponíveis:")
     for i, port in enumerate(ports):
         print(f"{i + 1}: {port}")
     selected_port = input("Selecione a porta serial (número): ")
+
 
     try:
         selected_port = ports[int(selected_port) - 1]
@@ -181,3 +196,4 @@ if __name__ == "__main__":
     port = 5000
     open_browser(port)
     socketio.run(app, host="0.0.0.0", port=port)
+
