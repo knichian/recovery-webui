@@ -24,7 +24,7 @@ file_handler = logging.FileHandler("flask_app.log", mode="a", encoding="utf-8")
 default_formater = logging.Formatter(
             "[%(asctime)s] %(levelname)-8s (%(name)s): %(message)s",
             style = "%",
-            datefmt="%Y-%m-%d %H:%M",
+            datefmt="%Y-%m-%d %H:%M:%S",
         )
 
 console_handler.setFormatter(default_formater)
