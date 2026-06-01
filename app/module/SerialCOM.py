@@ -19,8 +19,30 @@ class base_com():
                 inter_byte_timeout=None
             )
         except serial.SerialException as e:
-            self.serial = None
-            raise
+            # self.serial = None
+            print(e)
+            raise e
+
+    def edit_connection(self, port: str, baudrate: int = 115200, timeout: float = 0.5):
+        self.port = port
+        self.baudrate = baudrate
+        self.timeout = timeout
+        try:
+            del self.serial
+            self.serial = serial.Serial(
+                port=port,
+                baudrate=baudrate,
+                timeout=timeout,
+                xonxoff=False,
+                rtscts=False,
+                write_timeout=timeout,
+                dsrdtr=False,
+                inter_byte_timeout=None
+            )
+        except serial.SerialException as e:
+            # self.serial = None
+            print(e)
+            raise e
 
     # Envia um comando serial
     def send_command(self, command: bytes):

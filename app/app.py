@@ -1,25 +1,25 @@
-from flask import Flask, render_template, request
-from datetime import datetime
+from module import *
+from flask import Flask, jsonify, redirect, render_template, request, redirect
+from flask_api import status
 from flask_socketio import SocketIO
 from threading import Lock
-from module import *
 from datetime import datetime
-import webbrowser
 import logging
-import time
+import sys
+import os
+
+debug_mode: bool = False
+
+for option in sys.argv:
+    if option == "--debug":
+        debug_mode = True
+
+template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 
 logger = logging.getLogger("Flask-App")
 
-enable_debug_logs: bool = False
-
-match enable_debug_logs:
-    case True:
-        logger.setLevel(logging.DEBUG)
-    case False:
-        logger.setLevel(logging.INFO)
-
 console_handler = logging.StreamHandler()
-file_handler = logging.FileHandler("flask_app.log", mode="a", encoding="utf-8")
+file_handler = logging.FileHandler("logs/flask_app.log", mode="a", encoding="utf-8")
 
 default_formater = logging.Formatter(
             "[%(asctime)s] %(levelname)-8s (%(name)s): %(message)s",
@@ -27,11 +27,20 @@ default_formater = logging.Formatter(
             datefmt="%Y-%m-%d %H:%M:%S",
         )
 
+
+if debug_mode:
+    logger.setLevel(logging.DEBUG)
+else:
+    logger.setLevel(logging.INFO)
+
+
 console_handler.setFormatter(default_formater)
 file_handler.setFormatter(default_formater)
 
+
 logger.addHandler(console_handler)
 logger.addHandler(file_handler)
+
 
 logger.info("")
 logger.info("---------------------")
@@ -39,26 +48,80 @@ logger.info("--- NOVA EXECUÇÃO ---")
 logger.info("---------------------")
 logger.info("")
 
+
+if debug_mode:
+    logger.debug("modo debug ativado!")
+
+
 thread = None
 thread_lock = Lock()
 
-app = Flask(__name__)
-socketio = SocketIO(app)
+
+app: Flask = Flask(__name__)
+socketio: SocketIO = SocketIO(app)
+com = None
+# antenna_serial = None
+
+
+if debug_mode:
+    app.config["TEMPLATES_AUTO_RELOAD"]
 
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    if com != None:
+        return redirect("/config")
+    else:
+        return redirect("/rocket")
+
+
+@app.route("/rocket")
+def rocket():
+    if com != None:
+        return redirect("/config")
+    else:
+        return render_template("rocket.html")
 
 
 @app.route("/satellite")
 def satellite():
-    return render_template("satellite.html")
+    if com != None:
+        return render_template("satellite.html")
+    else:
+        return redirect("/config")
+
+
+@app.route("/config", methods=["GET", "POST"])
+def config():
+    if request.method == "GET":
+        return render_template("config.html")
+    elif request.method == "POST":
+        return ( "Configuração Atualizada!", status.HTTP_202_ACCEPTED )
+    else:
+        message = "metodo não suportado"
+        logger.error(message)
+        return ( message, status.HTTP_405_METHOD_NOT_ALLOWED )
+
+
+@app.get("/config/fetch_serial")
+def fetch_serial():
+
+    # serial_list = list_ports()
+    #
+    # response = {
+    #         "serial_list": serial_list
+    #         }
+
+    response = {
+            "serial_list": [ "serial1", "serial2",  "serial3" ]
+            }
+
+    return jsonify(response)
 
 
 @socketio.on("connect")
 def connect():
-    print("Cliente conectado")
+    logger.info("Cliente conectado")
     global thread
     with thread_lock:
         if thread is None:
@@ -67,28 +130,23 @@ def connect():
 
 @socketio.on("disconnect")
 def disconnect():
-    print("Cliente desconectado", request.sid)
-
-
-def get_current_datetime():
-    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    logger.info("Cliente desconectado")
 
 
 def background_thread():
-    log_path = "logs/log.csv"
+    current_time_stamp = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+    log_path = f"data/data_{current_time_stamp}.csv"
     with open(log_path, "w") as log_file:
 
-        log_file.write(
-            f"NOW,TEAM_ID,millis,count,altp,temp,umi,p,gp,gr,gy,ap,ar,ay,hora,data,alt,lat,lon,sat,pqd,rssi\n"
-        )
+        log_file.write( f"NOW,TEAM_ID,millis,count,altp,temp,umi,p,gp,gr,gy,ap,ar,ay,hora,data,alt,lat,lon,sat,pqd,rssi\n" )
     print("Thread started")
     while True:
         try:
             response = com.read_response()
             if not response:
-                socketio.sleep(0.5)
+                # socketio.sleep(1)
                 continue
-            print(f"Recebido-> {response}")
+            logger.info(f"Recebido -> {response}")
             now = get_current_datetime()
             with open(log_path, "a") as log_file:
                 log_file.write(f"{now},{response}\n")
@@ -118,7 +176,6 @@ def background_thread():
             ) = fields
 
             if TEAM_ID == "#100":
-
                 socketio.emit(
                     "updateRocket",
                     {
@@ -148,52 +205,26 @@ def background_thread():
                     },
                 )
 
-            socketio.sleep(0.5)
+            socketio.sleep(1)
 
         except Exception as e:
-            print(f"Erro em background_thread-> {e}")
+            logger.error(f"Erro em background_thread -> {e}")
             socketio.sleep(1)
 
 
-def open_browser(port):
-    webbrowser.open_new(f"http://localhost:{port}/")
+def get_current_datetime():
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
 if __name__ == "__main__":
-    ports = list_ports()
 
-    # if not ports:
-        # print("Nenhuma porta serial encontrada.")
-        # exit(1)
-
-    intervalo_verificacao_portas = 1
-    qtd_tentativas = 15
-
-    while not ports and qtd_tentativas:
-        logger.warning(f"Nenhuma serial encontrada, verificando novamente")
-        time.sleep(intervalo_verificacao_portas)
+    if debug_mode == True :
         ports = list_ports()
-        qtd_tentativas -= 1
+        if ports:
+            logger.debug("Portas seriais disponíveis:")
+            for i, port in enumerate(ports):
+                logger.debug(f"{i + 1}: {port}")
+        else:
+            logger.debug("Nenhuma porta serial encontrada")
 
-    if not ports:
-        logger.critical("Nenhuma serial encontrada, desligando")
-        exit(-1)
-
-    print("Portas seriais disponíveis:")
-    for i, port in enumerate(ports):
-        print(f"{i + 1}: {port}")
-    selected_port = input("Selecione a porta serial (número): ")
-
-
-    try:
-        selected_port = ports[int(selected_port) - 1]
-    except (IndexError, ValueError):
-        print("Seleção inválida. Encerrando.")
-        exit(1)
-
-    print(f"Porta selecionada: {selected_port}")
-    com = base_com(selected_port)
-    port = 5000
-    open_browser(port)
-    socketio.run(app, host="0.0.0.0", port=port)
-
+    socketio.run( app, host="0.0.0.0", port=5000, debug=debug_mode, extra_files=[template_dir] )
