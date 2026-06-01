@@ -1,5 +1,6 @@
 import serial
 import serial.tools.list_ports
+from serial import Serial
 import sys
 
 class base_com():
@@ -8,41 +9,19 @@ class base_com():
         self.baudrate = baudrate
         self.timeout = timeout
         try:
-            self.serial = serial.Serial(
-                port=port,
-                baudrate=baudrate,
-                timeout=timeout,
-                xonxoff=False,
-                rtscts=False,
-                write_timeout=timeout,
-                dsrdtr=False,
-                inter_byte_timeout=None
+            self.serial: Serial = Serial(
+                port = port,
+                baudrate = baudrate,
+                timeout = timeout,
+                xonxoff = False,
+                rtscts = False,
+                write_timeout = timeout,
+                dsrdtr = False,
+                inter_byte_timeout = None
             )
-        except serial.SerialException as e:
+        except serial.SerialException:
             # self.serial = None
-            print(e)
-            raise e
-
-    def edit_connection(self, port: str, baudrate: int = 115200, timeout: float = 0.5):
-        self.port = port
-        self.baudrate = baudrate
-        self.timeout = timeout
-        try:
-            del self.serial
-            self.serial = serial.Serial(
-                port=port,
-                baudrate=baudrate,
-                timeout=timeout,
-                xonxoff=False,
-                rtscts=False,
-                write_timeout=timeout,
-                dsrdtr=False,
-                inter_byte_timeout=None
-            )
-        except serial.SerialException as e:
-            # self.serial = None
-            print(e)
-            raise e
+            raise serial.SerialException
 
     # Envia um comando serial
     def send_command(self, command: bytes):
