@@ -45,6 +45,9 @@ logs/*.log
 app/logs/*.csv
 !app/logs/.gitkeep
 
+# Data
+app/data
+
 # Flask
 instance/
 .webassets-cache

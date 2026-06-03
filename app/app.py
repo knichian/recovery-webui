@@ -10,37 +10,30 @@ import os
 
 debug_mode: bool = False
 
+
+# verificando se o modo debug foi solicitado 
 for option in sys.argv:
     if option == "--debug":
         debug_mode = True
 
-template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 
+# configurando logger
 logger = logging.getLogger("Flask-App")
-
+if debug_mode:
+    logger.setLevel(logging.DEBUG)
+else:
+    logger.setLevel(logging.INFO)
 console_handler = logging.StreamHandler()
 file_handler = logging.FileHandler("logs/flask_app.log", mode="a", encoding="utf-8")
-
 default_formater = logging.Formatter(
             "[%(asctime)s] %(levelname)-8s (%(name)s): %(message)s",
             style = "%",
             datefmt="%Y-%m-%d %H:%M:%S",
         )
-
-
-if debug_mode:
-    logger.setLevel(logging.DEBUG)
-else:
-    logger.setLevel(logging.INFO)
-
-
 console_handler.setFormatter(default_formater)
 file_handler.setFormatter(default_formater)
-
-
 logger.addHandler(console_handler)
 logger.addHandler(file_handler)
-
 
 logger.info("")
 logger.info("---------------------")
@@ -48,44 +41,48 @@ logger.info("--- NOVA EXECUÇÃO ---")
 logger.info("---------------------")
 logger.info("")
 
-
 if debug_mode:
     logger.debug("modo debug ativado!")
 
 
+# aplicação flask
+app: Flask = Flask(__name__)
+
+if debug_mode:
+    template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
+    app.config["TEMPLATES_AUTO_RELOAD"]
+
+
+# websocket
+socketio: SocketIO = SocketIO(app)
 thread = None
 thread_lock = Lock()
 
 
-app: Flask = Flask(__name__)
-socketio: SocketIO = SocketIO(app)
-com = None
-# antenna_serial = None
-
-
-if debug_mode:
-    app.config["TEMPLATES_AUTO_RELOAD"]
+# interface serial
+antenna_serial_configured: bool = False
+antenna_serial = base_com("")
 
 
 @app.route("/")
 def index():
-    if com != None:
-        return redirect("/config")
-    else:
+    if antenna_serial_configured:
         return redirect("/rocket")
+    else:
+        return redirect("/config")
 
 
 @app.route("/rocket")
 def rocket():
-    if com != None:
-        return redirect("/config")
-    else:
+    if antenna_serial_configured:
         return render_template("rocket.html")
+    else:
+        return redirect("/config")
 
 
 @app.route("/satellite")
 def satellite():
-    if com != None:
+    if antenna_serial_configured:
         return render_template("satellite.html")
     else:
         return redirect("/config")
@@ -96,6 +93,8 @@ def config():
     if request.method == "GET":
         return render_template("config.html")
     elif request.method == "POST":
+        global antenna_serial_configured 
+        antenna_serial_configured = True
         return ( "Configuração Atualizada!", status.HTTP_202_ACCEPTED )
     else:
         message = "metodo não suportado"
@@ -133,23 +132,27 @@ def disconnect():
     logger.info("Cliente desconectado")
 
 
+# TODO: finish the system to configure the serial interface from the webapp
+# TODO: verify efficience on writing the data to file
+
 def background_thread():
     current_time_stamp = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-    log_path = f"data/data_{current_time_stamp}.csv"
-    with open(log_path, "w") as log_file:
+    data_out_file_path = f"data/data_{current_time_stamp}.csv"
+    with open(data_out_file_path, "w") as data_out_file:
 
-        log_file.write( f"NOW,TEAM_ID,millis,count,altp,temp,umi,p,gp,gr,gy,ap,ar,ay,hora,data,alt,lat,lon,sat,pqd,rssi\n" )
-    print("Thread started")
+        data_out_file.write( f"NOW,TEAM_ID,millis,count,altp,temp,umi,p,gp,gr,gy,ap,ar,ay,hora,data,alt,lat,lon,sat,pqd,rssi\n" )
+    # print("Thread started")
+    logger.info("comunicação websocket iniciada")
     while True:
         try:
-            response = com.read_response()
+            response = antenna_serial.read_response()
             if not response:
                 # socketio.sleep(1)
                 continue
             logger.info(f"Recebido -> {response}")
             now = get_current_datetime()
-            with open(log_path, "a") as log_file:
-                log_file.write(f"{now},{response}\n")
+            with open(data_out_file_path, "a") as data_out_file:
+                data_out_file.write(f"{now},{response}\n")
             fields = response.split(",")
             (
                 TEAM_ID,

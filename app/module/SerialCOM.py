@@ -2,27 +2,28 @@ import serial
 import serial.tools.list_ports
 from serial import Serial
 import sys
+import logging
 
 class base_com():
-    def __init__(self, port: str, baudrate: int = 115200, timeout: float = 0.5):
-        self.port = port
-        self.baudrate = baudrate
-        self.timeout = timeout
-        try:
-            self.serial: Serial = Serial(
-                port = port,
-                baudrate = baudrate,
-                timeout = timeout,
-                xonxoff = False,
-                rtscts = False,
-                write_timeout = timeout,
-                dsrdtr = False,
-                inter_byte_timeout = None
-            )
-        except serial.SerialException:
-            # self.serial = None
-            raise serial.SerialException
+    def __init__(self, port: str, baudrate: int = 115200, timeout: float = 0.5, logger: logging.Logger = logging.getLogger(__name__)):
+        self.port: str = port
+        self.baudrate: int = baudrate
+        self.timeout: float = timeout
+        self.serial: Serial
+        self.logger: logging.Logger = logger
+        self.logger.info("interface serial criada")
 
+    def configure(self, port: str, baudrate: int = 115200, timeout: float = 0.5):
+        self.serial: Serial = Serial(
+            port = port,
+            baudrate = baudrate,
+            timeout = timeout,
+            xonxoff = False,
+            rtscts = False,
+            write_timeout = timeout,
+            dsrdtr = False,
+            inter_byte_timeout = None
+        )
     # Envia um comando serial
     def send_command(self, command: bytes):
         self.serial.write(command)
@@ -56,11 +57,11 @@ if __name__ == "__main__":
     
     # Example usage
     if ports:
-        com = base_com('/dev/ttyACM0')
+        antenna_serial = base_com('/dev/ttyACM0')
         n = 0
         while n<1000:
             # com.send_command(b'A')
-            response = com.read_response()
+            response = antenna_serial.read_response()
             print(f"Response: {response}")
             n += 1
-        com.close()
+        antenna_serial.close()
