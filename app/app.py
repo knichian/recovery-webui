@@ -61,7 +61,7 @@ thread_lock = Lock()
 
 # interface serial
 antenna_serial_configured: bool = False
-antenna_serial = base_com("")
+antenna_serial = base_com()
 
 
 @app.route("/")
