@@ -1,9 +1,18 @@
+bidict==0.23.1
+click==8.4.1
 Flask==2.2.1
-Flask_SocketIO==5.5.1
+Flask-API==3.1
+Flask-SocketIO==5.5.1
+h11==0.16.0
+itsdangerous==2.2.0
+Jinja2==3.1.6
+MarkupSafe==3.0.3
+nodeenv==1.10.0
+pyright==1.1.409
 pyserial==3.5
-# Allow a Werkzeug version that satisfies Flask 2.2.1 but avoid major 3.x
-# which may remove/rename helpers Flask expects. This lets pip choose
-# the latest compatible 2.2.x release (e.g. 2.2.3) while preventing
-# incompatible 3.x installs that can trigger ImportError for symbols
-# like `url_quote`.
-werkzeug>=2.2.0,<3.0
+python-engineio==4.13.2
+python-socketio==5.16.2
+simple-websocket==1.1.0
+typing_extensions==4.15.0
+Werkzeug==2.3.8
+wsproto==1.3.2
