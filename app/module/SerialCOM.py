@@ -4,7 +4,7 @@ from serial import Serial, SerialException
 import sys
 import logging
 
-class base_com():
+class BaseCom():
     def __init__(self, logger: logging.Logger = logging.getLogger(__name__)):
         self.serial: Serial
         self.serial_configured: bool = False
@@ -61,7 +61,6 @@ class base_com():
     
     # Encerra a conexão serial
     def close(self):
-        
         if self.serial_configured:
             try:
                 self.serial.close()
@@ -70,13 +69,27 @@ class base_com():
         else:
             self.logger.error("serial não configurada")
 
+    def list_ports(self):
+        if sys.platform.startswith('win'):  # For Windows
+            return [port.device for port in serial.tools.list_ports.comports()]
+        elif sys.platform.startswith(('linux', 'cygwin')): # For Linux and Cygwin
+            return [port.device for port in serial.tools.list_ports.comports() if '/dev/ttyACM' in port.device]
+        else:
+            return []
+
+class FakeCom(BaseCom):
+    def __init__(self, logger: logging.Logger = logging.getLogger(__name__)):
+        super().__init__(logger)
+
+
 # Lista as portas seriais disponíveis
 def list_ports():
     if sys.platform.startswith('win'):  # For Windows
         return [port.device for port in serial.tools.list_ports.comports()]
     elif sys.platform.startswith(('linux', 'cygwin')): # For Linux and Cygwin
         return [port.device for port in serial.tools.list_ports.comports() if '/dev/ttyACM' in port.device]
-    return []
+    else:
+        return []
 
 if __name__ == "__main__":
     logger = logging.getLogger()
@@ -90,7 +103,7 @@ if __name__ == "__main__":
     
     # Example usage
     if ports:
-        antenna_serial = base_com()
+        antenna_serial = BaseCom()
         antenna_serial.configure_serial("/dev/ttyACM")
         n = 0
         while n<1000:
