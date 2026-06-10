@@ -77,9 +77,6 @@ class BaseCom():
         else:
             return []
 
-class FakeCom(BaseCom):
-    def __init__(self, logger: logging.Logger = logging.getLogger(__name__)):
-        super().__init__(logger)
 
 
 # Lista as portas seriais disponíveis

@@ -8,7 +8,6 @@ import logging
 import sys
 import os
 
-
 debug_mode: bool = False
 simulation_mode: bool = False
 
@@ -23,7 +22,7 @@ for option in sys.argv:
 
 
 # configurando loggers
-app_logger = logging.getLogger("Web-App")
+app_logger = logging.getLogger("WebApp")
 ws_logger = app_logger.getChild("WebSocket")
 antenna_logger = app_logger.getChild("Antenna")
 
