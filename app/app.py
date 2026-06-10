@@ -32,7 +32,7 @@ else:
     app_logger.setLevel(logging.INFO)
 
 current_day_date = datetime.now().strftime("%Y_%m_%d")
-log_file_name = "webapp_log_{current_day_date}"
+log_file_name = f"webapp_log_{current_day_date}"
 file_handler = logging.FileHandler(f"logs/{log_file_name}.log", mode="a", encoding="utf-8")
 console_handler = logging.StreamHandler()
 
@@ -69,6 +69,8 @@ app: Flask = Flask(__name__)
 if debug_mode:
     template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
     app.config["TEMPLATES_AUTO_RELOAD"]
+else:
+    template_dir = ()
 
 
 # websocket
@@ -168,9 +170,6 @@ def disconnect():
     app_logger.info("Cliente desconectado")
 
 
-# TODO: finish the system to configure the serial interface from the webapp
-# TODO: verify efficience on writing the data to file
-
 def background_thread():
     current_time_stamp = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
     data_out_file_path = f"data/data_{current_time_stamp}.csv"
@@ -180,78 +179,81 @@ def background_thread():
 
     ws_logger.info("comunicação websocket iniciada")
 
-    while True:
-        try:
-            response = antenna_serial.read_response()
+    with open(data_out_file_path, "a") as data_out_file:
+        while True:
+            try:
+                response = antenna_serial.read_response()
 
-            if not response:
-                continue
+                if not response:
+                    continue
 
-            ws_logger.info(f"Recebido -> {response}")
-            now = get_current_datetime()
+                ws_logger.debug(f"Recebido -> {response}")
+                now = get_current_datetime()
 
-            with open(data_out_file_path, "a") as data_out_file:
                 data_out_file.write(f"{now},{response}\n")
 
-            fields = response.split(",")
+                # with open(data_out_file_path, "a") as data_out_file:
+                #     data_out_file.write(f"{now},{response}\n")
 
-            (
-                TEAM_ID,
-                millis,
-                count,
-                altp,
-                temp,
-                umi,
-                p,
-                gp,
-                gr,
-                gy,
-                ap,
-                ar,
-                ay,
-                hora,
-                data,
-                alt,
-                lat,
-                lon,
-                sat,
-                pqd,
-                rssi,
-            ) = fields
+                fields = response.split(",")
 
-            if TEAM_ID == "#100":
-                socketio.emit(
-                    "updateRocket",
-                    {
-                        "latitude": lat,
-                        "longitude": lon,
-                        "altura": altp,
-                        "satelites": sat,
-                        "rssi": rssi,
-                        "pqd": pqd,
-                        "time": now,
-                    },
-                )
+                TEAM_ID = fields[1]
+                # millis =  fields[2]
+                # count =   fields[3]
+                altp =    fields[4]
+                temp =    fields[5]
+                umi =     fields[6]
+                p =       fields[7]
+                # gp =      fields[8]
+                # gr =      fields[9]
+                # gy =      fields[10]
+                # ap =      fields[11]
+                # ar =      fields[12]
+                # ay =      fields[13]
+                # hora =    fields[14]
+                # data =    fields[15]
+                # alt =     fields[16]
+                lat =     fields[17]
+                lon =     fields[18]
+                sat =     fields[19]
+                pqd =     fields[20]
+                rssi =    fields[21]
 
-            if TEAM_ID == "#261":
-                socketio.emit(
-                    "updateSat",
-                    {
-                        "latitude": lat,
-                        "longitude": lon,
-                        "altura": altp,
-                        "satelites": sat,
-                        "temperatura": temp,
-                        "umidade": umi,
-                        "pressao": p,
-                        "rssi": rssi,
-                        "time": now,
-                    },
-                )
-            # socketio.sleep(1)
-        except Exception as e:
-            app_logger.error(f"Erro em background_thread -> {e}")
-            socketio.sleep(1)
+                match TEAM_ID:
+                    case "#100":
+                         socketio.emit(
+                            "updateRocket",
+                            {
+                                "latitude": lat,
+                                "longitude": lon,
+                                "altura": altp,
+                                "satelites": sat,
+                                "rssi": rssi,
+                                "pqd": pqd,
+                                "time": now,
+                            },
+                        )   
+                    case "#261":
+                        socketio.emit(
+                            "updateSat",
+                            {
+                                "latitude": lat,
+                                "longitude": lon,
+                                "altura": altp,
+                                "satelites": sat,
+                                "temperatura": temp,
+                                "umidade": umi,
+                                "pressao": p,
+                                "rssi": rssi,
+                                "time": now,
+                            },
+                        )
+
+                # socketio.sleep(1)
+
+            except Exception as e:
+                app_logger.error(f"Erro em background_thread -> {e}")
+                socketio.sleep(1)
 
 
 def get_current_datetime():
