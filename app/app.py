@@ -10,6 +10,7 @@ import os
 
 debug_mode: bool = False
 simulation_mode: bool = False
+cli_mode: bool = False
 
 # verificando os argumentos passados para cli
 for option in sys.argv:
@@ -19,6 +20,9 @@ for option in sys.argv:
     # verificando se o modo simulação foi solicitado 
     if option == "--simulation":
         simulation_mode = True
+    # verificando se usa CLI
+    if option == "--cli":
+        cli_mode = True
 
 
 # configurando loggers
@@ -197,27 +201,28 @@ def background_thread():
 
                 fields = response.split(",")
 
-                TEAM_ID = fields[1]
-                # millis =  fields[2]
-                # count =   fields[3]
-                altp =    fields[4]
-                temp =    fields[5]
-                umi =     fields[6]
-                p =       fields[7]
-                # gp =      fields[8]
-                # gr =      fields[9]
-                # gy =      fields[10]
-                # ap =      fields[11]
-                # ar =      fields[12]
-                # ay =      fields[13]
-                # hora =    fields[14]
-                # data =    fields[15]
-                # alt =     fields[16]
-                lat =     fields[17]
-                lon =     fields[18]
-                sat =     fields[19]
-                pqd =     fields[20]
-                rssi =    fields[21]
+                TEAM_ID = fields[0]
+                # millis =  fields[1]
+                # count =   fields[2]
+                altp =    fields[3]
+                temp =    fields[4]
+                umi =     fields[5]
+                p =       fields[6]
+                # gp =      fields[7]
+                # gr =      fields[8]
+                # gy =      fields[9]
+                # ap =      fields[10]
+                # ar =      fields[11]
+                # ay =      fields[12]
+                # hora =    fields[13]
+                # data =    fields[14]
+                # alt =     fields[15]
+                lat =     fields[16]
+                lon =     fields[17]
+                sat =     fields[18]
+                pqd =     fields[19]
+                rssi =    fields[20]
+
 
                 match TEAM_ID:
                     case "#100":
@@ -233,6 +238,7 @@ def background_thread():
                                 "time": now,
                             },
                         )   
+                        
                     case "#261":
                         socketio.emit(
                             "updateSat",
@@ -248,6 +254,8 @@ def background_thread():
                                 "time": now,
                             },
                         )
+                    case _:
+                        app_logger.error(f"TEAM_ID não identificado: {TEAM_ID}")
 
                 # socketio.sleep(1)
 
@@ -260,15 +268,26 @@ def get_current_datetime():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
+# interface cli
+def cli_interface():
+    # TODO: make cli interface
+    ports = list_ports()
+    if ports:
+        # app_logger.debug("Portas seriais disponíveis:")
+        print("Portas seriais disponíveis:")
+        for i, port in enumerate(ports):
+            # app_logger.debug(f"{i + 1}: {port}")
+            print(f"\t{i + 1}: {port}")
+    else:
+        # app_logger.debug("Nenhuma porta serial encontrada")
+        print("Nenhuma porta serial encontrada")
+    pass
+
+
 if __name__ == "__main__":
 
-    if debug_mode == True :
-        ports = list_ports()
-        if ports:
-            app_logger.debug("Portas seriais disponíveis:")
-            for i, port in enumerate(ports):
-                app_logger.debug(f"{i + 1}: {port}")
-        else:
-            app_logger.debug("Nenhuma porta serial encontrada")
+    if cli_mode == True :
+        cli_interface()
+    else:
+        socketio.run( app, host="0.0.0.0", port=5000, debug=debug_mode, extra_files=[template_dir] )
 
-    socketio.run( app, host="0.0.0.0", port=5000, debug=debug_mode, extra_files=[template_dir] )
