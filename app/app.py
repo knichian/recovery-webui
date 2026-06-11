@@ -1,9 +1,10 @@
-from module import BaseCom, list_ports
+from module import BaseCom, FakeCom, list_ports
 from flask import Flask, jsonify, redirect, render_template, request, redirect
 from flask_api import status
 from flask_socketio import SocketIO
 from threading import Lock
 from datetime import datetime
+from simple_term_menu import TerminalMenu
 import logging
 import sys
 import os
@@ -23,7 +24,6 @@ for option in sys.argv:
     # verificando se usa CLI
     if option == "--cli":
         cli_mode = True
-
 
 # configurando loggers
 app_logger = logging.getLogger("WebApp")
@@ -64,8 +64,11 @@ if debug_mode:
 
 # interface serial
 antenna_serial_configured: bool = False
-antenna_serial = BaseCom(antenna_logger)
 
+if simulation_mode:
+    antenna_serial = FakeCom(antenna_logger)
+else: 
+    antenna_serial = BaseCom(antenna_logger)
 
 # aplicação flask
 app: Flask = Flask(__name__)
@@ -281,59 +284,49 @@ def cli_configure_serial():
         print("Nenhuma porta serial encontrada")
     ...
 
+
 def cli_monitor_connection():
     ...
 
-# interface cli
+
 def cli_main_menu():
+    main_menu_options = (
+            "Editar configurações do serial",
+            "Monitorar serial",
+            "Sair da aplicação"
+            )
 
-    connection_status: bool = True
+    keep_running = True
 
-    menu_title = f"* Menu: status({connection_status})"
-    menu_options = [
-            [ "configurar conexão serial", cli_configure_serial ],
-            [ "monitorar conexão", cli_monitor_connection ]
-            ]
+    while keep_running:
+        main_menu_title = "* Menu Principal: "
+        main_menu = TerminalMenu(main_menu_options, title=main_menu_title)
+        main_menu_chosen_index = main_menu.show()
+        
+        # TODO: figure out how to use pygame to get real time keyboard input
 
-    print(menu_title)
-    for i, name in zip(range(len(menu_options)), menu_options):
-        print(f"{i+1} - {name}")
-        ...
-    selected_option = int(input("escolha sua opção:\n=> "))
-    selected_option = (selected_option - 1)
-
-    next_state = menu_options[selected_option][1]
-
-    return next_state
-
-    # print("")
-    # print(f"* Menu: status({connection_status})")
-    # print("\t1 - configurar conexão serial")
-    # print("\t2 - monitorar conexão")
-    # print("")
-    # selected_option = int(input("escolha sua opção:\n=> "))
-    # print("")
-    # 
-    # next_state
-    # match selected_option:
-    #     case 1:
-    #         next_state = cli_configure_serial
-    #     case 2:
-    #         next_state = cli_monitor_connection
-    #     case _:
-    #         next_state = cli_main_menu
-    #
-    # return next_state
-    # ...
+        match main_menu_chosen_index:
+            case 1:   # activate/deactivate serial cli option
+                pass
+            case 2:  # configure cli option
+                pass
+            case 3:  # monitor cli option
+                pass
+            case 4:   # quit option
+                keep_running = False
+                pass
+            case _:
+                logger.error("erro em menu cli")
 
 
 if __name__ == "__main__":
 
-    if cli_mode == True :
+    if cli_mode:
         # TODO: make cli interface
         # TODO: make a state machine to power the cli interface
         # TODO: migrate to using simple-term-menu
         cli_main_menu()
+        
     else:
         socketio.run( app, host="0.0.0.0", port=5000, debug=debug_mode, extra_files=[template_dir] )
 

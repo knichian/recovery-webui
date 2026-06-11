@@ -28,6 +28,7 @@ class BaseCom():
         except SerialException as err:
             self.logger.error(f"erro ao configurar serial -> {err}")
 
+    # TODO: create method to abstract the check if the serial is configured with a decorator
 
     # Envia um comando serial
     def send_command(self, command: bytes):
@@ -64,6 +65,7 @@ class BaseCom():
         if self.serial_configured:
             try:
                 self.serial.close()
+
             except SerialException as err:
                 self.logger.error(f"erro de comunicação serial -> {err}")
         else:
