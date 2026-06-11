@@ -268,9 +268,7 @@ def get_current_datetime():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
-# interface cli
-def cli_interface():
-    # TODO: make cli interface
+def cli_configure_serial():
     ports = list_ports()
     if ports:
         # app_logger.debug("Portas seriais disponíveis:")
@@ -281,13 +279,61 @@ def cli_interface():
     else:
         # app_logger.debug("Nenhuma porta serial encontrada")
         print("Nenhuma porta serial encontrada")
-    pass
+    ...
+
+def cli_monitor_connection():
+    ...
+
+# interface cli
+def cli_main_menu():
+
+    connection_status: bool = True
+
+    menu_title = f"* Menu: status({connection_status})"
+    menu_options = [
+            [ "configurar conexão serial", cli_configure_serial ],
+            [ "monitorar conexão", cli_monitor_connection ]
+            ]
+
+    print(menu_title)
+    for i, name in zip(range(len(menu_options)), menu_options):
+        print(f"{i+1} - {name}")
+        ...
+    selected_option = int(input("escolha sua opção:\n=> "))
+    selected_option = (selected_option - 1)
+
+    next_state = menu_options[selected_option][1]
+
+    return next_state
+
+    # print("")
+    # print(f"* Menu: status({connection_status})")
+    # print("\t1 - configurar conexão serial")
+    # print("\t2 - monitorar conexão")
+    # print("")
+    # selected_option = int(input("escolha sua opção:\n=> "))
+    # print("")
+    # 
+    # next_state
+    # match selected_option:
+    #     case 1:
+    #         next_state = cli_configure_serial
+    #     case 2:
+    #         next_state = cli_monitor_connection
+    #     case _:
+    #         next_state = cli_main_menu
+    #
+    # return next_state
+    # ...
 
 
 if __name__ == "__main__":
 
     if cli_mode == True :
-        cli_interface()
+        # TODO: make cli interface
+        # TODO: make a state machine to power the cli interface
+        # TODO: migrate to using simple-term-menu
+        cli_main_menu()
     else:
         socketio.run( app, host="0.0.0.0", port=5000, debug=debug_mode, extra_files=[template_dir] )
 
