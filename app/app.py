@@ -1,3 +1,7 @@
+from typing import Callable
+
+import serial
+
 from module import BaseCom, FakeCom, list_ports
 from flask import Flask, jsonify, redirect, render_template, request, redirect
 from flask_api import status
@@ -289,34 +293,35 @@ def cli_monitor_connection():
     ...
 
 
-def cli_main_menu():
-    main_menu_options = (
+def cli_main_menu() -> Callable | None:
+    serial_connection_status = antenna_serial.check_connection()
+    main_menu_title = "Menu Principal: status ( {serial_connection_status} )"
+    main_menu_options = [
+            "Desativar serial" if serial_connection_status else "Ativar serial",
             "Editar configurações do serial",
             "Monitorar serial",
             "Sair da aplicação"
-            )
-
-    keep_running = True
-
-    while keep_running:
-        main_menu_title = "* Menu Principal: "
-        main_menu = TerminalMenu(main_menu_options, title=main_menu_title)
-        main_menu_chosen_index = main_menu.show()
-        
-        # TODO: figure out how to use pygame to get real time keyboard input
-
-        match main_menu_chosen_index:
-            case 1:   # activate/deactivate serial cli option
-                pass
-            case 2:  # configure cli option
-                pass
-            case 3:  # monitor cli option
-                pass
-            case 4:   # quit option
-                keep_running = False
-                pass
-            case _:
-                logger.error("erro em menu cli")
+            ]
+    main_menu = TerminalMenu(main_menu_options, title=main_menu_title)
+    main_menu_chosen_index = main_menu.show()
+    
+    # TODO: figure out how to use pygame to get real time keyboard input
+    match main_menu_chosen_index:
+        case 0:   # activate/deactivate serial cli option
+            if serial_connection_status:
+                ...
+            else:
+                ...
+        case 1:  # configure cli option
+            ...
+        case 2:  # monitor cli option
+            ...
+        case 3:   # quit option
+            keep_running = False
+            return None
+        case _:
+            app_logger.error("erro em menu cli")
+            return None
 
 
 if __name__ == "__main__":
@@ -325,7 +330,11 @@ if __name__ == "__main__":
         # TODO: make cli interface
         # TODO: make a state machine to power the cli interface
         # TODO: migrate to using simple-term-menu
-        cli_main_menu()
+        first_state: Callable = cli_main_menu()
+        next_state = first_state()
+        while next_state:
+            next_state = next_state()
+
         
     else:
         socketio.run( app, host="0.0.0.0", port=5000, debug=debug_mode, extra_files=[template_dir] )
