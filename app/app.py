@@ -1,7 +1,7 @@
+import time
 from typing import Callable
 
-import serial
-
+from serial import PortNotOpenError
 from module import BaseCom, FakeCom, list_ports
 from flask import Flask, jsonify, redirect, render_template, request, redirect
 from flask_api import status
@@ -129,7 +129,11 @@ def serial_config():
         baudrate: int = int(data["baudrate"])
         timeout: float = float(data["timeout"])
 
-        antenna_serial.configure_serial(serial_port, baudrate, timeout)
+        # antenna_serial.configure_serial(serial_port, baudrate, timeout)
+        antenna_serial.serial.port = serial_port
+        antenna_serial.serial.baudrate = baudrate
+        antenna_serial.serial.timeout = timeout
+        antenna_serial.open()
         antenna_serial_configured = True
 
         app_logger.info("Configuração atualizada:")
@@ -275,7 +279,8 @@ def get_current_datetime():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
-def cli_configure_serial():
+def cli_configure_serial_select_port():
+    # TODO: make a menu function to select the serial port
     ports = list_ports()
     if ports:
         # app_logger.debug("Portas seriais disponíveis:")
@@ -283,44 +288,84 @@ def cli_configure_serial():
         for i, port in enumerate(ports):
             # app_logger.debug(f"{i + 1}: {port}")
             print(f"\t{i + 1}: {port}")
+        ...
     else:
         # app_logger.debug("Nenhuma porta serial encontrada")
         print("Nenhuma porta serial encontrada")
     ...
 
+def cli_configure_serial_select_baudrate():
+    # TODO: make a menu function to select the serial baudrate
+    # try:
+    #     print(antenna_serial.serial.baudrate) # (...)
+    #     pass
+    # except:
+    #     app_logger.error( "erro ao configurar baudrate" )
+    ...
 
-def cli_monitor_connection():
+def cli_configure_serial_select_timeout():
+    # TODO: make a menu function to select the serial timeout
+    ...
+
+def cli_configure_serial():
+    # TODO: make a menu function to configure the serial
     ...
 
 
+def cli_monitor_serial_data():
+    ...
+
+def cli_serial_on():
+    antenna_serial.open()
+
+def cli_serial_off():
+    antenna_serial.close()
+
+
 def cli_main_menu() -> Callable | None:
-    serial_connection_status = antenna_serial.check_connection()
-    main_menu_title = "Menu Principal: status ( {serial_connection_status} )"
+
+    # serial_configuration_status = antenna_serial.check_configured()
+    serial_connection_status = antenna_serial.check_connected()
+
+    main_menu_title = f'''
+    Menu Principal:
+        Port -> {antenna_serial.serial.port}
+        Baudrate -> {antenna_serial.serial.baudrate}
+        Timeout -> {antenna_serial.serial.timeout}
+        Status -> {antenna_serial.check_connected()}
+
+    '''
     main_menu_options = [
-            "Desativar serial" if serial_connection_status else "Ativar serial",
-            "Editar configurações do serial",
+            "Atualizar status da serial",
+            ("Desativar serial" if serial_connection_status else "Ativar serial"),
+            "Editar configurações da serial",
             "Monitorar serial",
             "Sair da aplicação"
             ]
+
     main_menu = TerminalMenu(main_menu_options, title=main_menu_title)
     main_menu_chosen_index = main_menu.show()
     
-    # TODO: figure out how to use pygame to get real time keyboard input
     match main_menu_chosen_index:
-        case 0:   # activate/deactivate serial cli option
-            if serial_connection_status:
-                ...
-            else:
-                ...
-        case 1:  # configure cli option
-            ...
-        case 2:  # monitor cli option
-            ...
-        case 3:   # quit option
-            keep_running = False
+        case 0:
+            return cli_main_menu
+        case 1:   # activate/deactivate serial cli option
+            match serial_connection_status:
+                case True:
+                    return cli_serial_off
+                case False:
+                    return cli_serial_on
+        case 2:  # configure cli option
+            # TODO: make the function to configure the antenna
+            return cli_configure_serial
+        case 3:  # monitor cli option
+            # TODO: figure out how to use pygame to get real time keyboard input
+            return cli_monitor_serial_data
+        case 4:   # quit option
+            app_logger.info("CLI app finalizado")
             return None
         case _:
-            app_logger.error("erro em menu cli")
+            app_logger.critical("Erro em menu CLI!")
             return None
 
 
@@ -329,13 +374,11 @@ if __name__ == "__main__":
     if cli_mode:
         # TODO: make cli interface
         # TODO: make a state machine to power the cli interface
-        # TODO: migrate to using simple-term-menu
-        first_state: Callable = cli_main_menu()
-        next_state = first_state()
+        next_state: ( Callable | None ) = cli_main_menu()
+
         while next_state:
             next_state = next_state()
 
-        
     else:
         socketio.run( app, host="0.0.0.0", port=5000, debug=debug_mode, extra_files=[template_dir] )
 

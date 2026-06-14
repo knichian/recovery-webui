@@ -1,75 +1,55 @@
-import serial
+# import serial
+from datetime import time
+
 import serial.tools.list_ports
 from serial import Serial, SerialException
 import sys
 import logging
 
-class BaseCom():
+# TODO: create method to abstract the check if the serial is configured with a decorator
+class BaseCom:
+    
     def __init__(self, logger: logging.Logger = logging.getLogger(__name__)):
-        self.serial: Serial
-        self.serial_configured: bool = False
         self.logger: logging.Logger = logger
-        self.logger.info("interface serial criada")
+        self.serial = Serial(
+            port = None,
+            baudrate = 115200,
+            timeout = None,
+            xonxoff = False,
+            rtscts = False,
+            write_timeout = None,
+            dsrdtr = False,
+            inter_byte_timeout = None
+        )
+        self.logger.info("interface de comunicação criada")
 
-    def configure_serial(self, port: str, baudrate: int = 115200, timeout: float = 0.5):
-        try:
-            self.serial: Serial = Serial(
-                port = port,
-                baudrate = baudrate,
-                timeout = timeout,
-                xonxoff = False,
-                rtscts = False,
-                write_timeout = timeout,
-                dsrdtr = False,
-                inter_byte_timeout = None
-            )
-            self.serial_configured = True
-            self.logger.info("interface serial configurada")
-        except SerialException as err:
-            self.logger.error(f"erro ao configurar serial -> {err}")
-
-    # TODO: create method to abstract the check if the serial is configured with a decorator
 
     # Envia um comando serial
     def send_command(self, command: bytes):
-        if self.serial_configured:
-            try:
-                self.serial.write(command)
-            except SerialException as err:
-                self.logger.error(f"erro de comunicação serial -> {err}")
-        else:
-            self.logger.error("serial não configurada")
+        try:
+            self.serial.write(command)
+        except SerialException as err:
+            self.logger.error(f"erro de comunicação serial -> {err}")
+
 
     # Recebe uma string serial
     def read_response(self):
-        if self.serial_configured:
-            try:
-                return self.serial.readline().decode('utf-8').strip()
-            except SerialException as err:
-                self.logger.error(f"erro de comunicação serial -> {err}")
-        else:
-            self.logger.error("serial não configurada")
+        try:
+            return self.serial.readline().decode('utf-8').strip()
+        except SerialException as err:
+            self.logger.error(f"erro de comunicação serial -> {err}")
     
-    # Confere a conexão serial
-    def check_connection(self):
-        if self.serial_configured:
-            try:
-                return self.serial.is_open
-            except SerialException as err:
-                self.logger.error(f"erro de comunicação serial -> {err}")
-        else:
-            self.logger.error("serial não configurada")
-    
-    # Encerra a conexão serial
-    def close(self):
-        if self.serial_configured:
-            try:
-                self.serial.close()
+    # Confere a conexão serial esta ativa
+    def check_connected(self):
+        return self.serial.is_open
 
-            except SerialException as err:
-                self.logger.error(f"erro de comunicação serial -> {err}")
-        else:
-            self.logger.error("serial não configurada")
+    # Ativa a conexão serial
+    def open(self):
+        self.serial.open()
+        
+    # Desativa a conexão serial
+    def close(self):
+        self.serial.close()
 
     def list_ports(self):
         if sys.platform.startswith('win'):  # For Windows
@@ -103,7 +83,12 @@ if __name__ == "__main__":
     # Example usage
     if ports:
         antenna_serial = BaseCom()
-        antenna_serial.configure_serial("/dev/ttyACM")
+        # antenna_serial.configure_serial("/dev/ttyACM")
+        # antenna_serial.configure_port("/dev/ttyACM")
+        # antenna_serial.configure_baudrate()  # broken! need to find the default value for this
+        # antenna_serial.configure_timeout() # broken! need to find the default value for this
+        # antenna_serial.configure_serial()
+        # TODO: fix this test part
         n = 0
         while n<1000:
             # com.send_command(b'A')
