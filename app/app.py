@@ -1,8 +1,9 @@
 from typing import Callable
 
 from module import BaseCom, FakeCom, list_ports
-from flask import Flask, jsonify, redirect, render_template, request, response, redirect
+from flask import Flask, jsonify, redirect, render_template, request, redirect
 from flask import Response
+from flask import request
 from flask_api import status
 from flask_socketio import SocketIO
 from threading import Lock
@@ -153,6 +154,10 @@ def serial_config():
         app_logger.error(message)
         return ( message, status.HTTP_405_METHOD_NOT_ALLOWED )
 
+@app.get("/config")
+def serial_config_2():
+    return render_template("serial_config.html")
+
 
 # @app.get("/config/fetch_serial")
 # def fetch_serial():
@@ -177,20 +182,30 @@ def get_serial_ports():
     data = { "ports_avaliable": port_list }
     return jsonify(data)
 
+
 @app.get("/api/get_baudrates")
 def get_baudrates():
     baudrate_list = antenna_serial.serial.BAUDRATES
     data = { "baudrate_list": baudrate_list }
     return jsonify(data)
 
-from flask import Response
 
 @app.post("/api/set_serial_config")
 def set_serial_config():
-    data = request.json
+    json = request.get_json()
+    data = json["serial_configs"]
+
     new_port = data["port"]
     new_baurate = data["baudrate"]
     new_timeout = data["timeout"]
+
+    antenna_serial.set_port(new_port)
+    app_logger.info(f"Porta serial configurada para: {new_port}")
+    antenna_serial.set_baudrate(new_baurate)
+    app_logger.info(f"Baudrate configurado para: {new_baurate}")
+    antenna_serial.set_timeout(new_timeout)
+    app_logger.info(f"Timeout configurado para: {new_timeout}")
+
     return Response("", status.HTTP_201_CREATED)
 
 
