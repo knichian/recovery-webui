@@ -1,9 +1,8 @@
-import time
 from typing import Callable
 
-from serial import PortNotOpenError
 from module import BaseCom, FakeCom, list_ports
-from flask import Flask, jsonify, redirect, render_template, request, redirect
+from flask import Flask, jsonify, redirect, render_template, request, response, redirect
+from flask import Response
 from flask_api import status
 from flask_socketio import SocketIO
 from threading import Lock
@@ -155,22 +154,47 @@ def serial_config():
         return ( message, status.HTTP_405_METHOD_NOT_ALLOWED )
 
 
-@app.get("/config/fetch_serial")
-def fetch_serial():
+# @app.get("/config/fetch_serial")
+# def fetch_serial():
+#
+#     # serial_list = list_ports()
+#     #
+#     # response = {
+#     #         "serial_list": serial_list
+#     #         }
+#
+#     response = {
+#             "serial_list": [ "serial1", "serial2",  "serial3" ]
+#             }
+#
+#     return jsonify(response)
 
-    # serial_list = list_ports()
-    #
-    # response = {
-    #         "serial_list": serial_list
-    #         }
 
-    response = {
-            "serial_list": [ "serial1", "serial2",  "serial3" ]
-            }
+# configurar serial pela webui
+@app.get("/api/get_serial_ports")
+def get_serial_ports():
+    port_list = antenna_serial.list_ports()
+    data = { "ports_avaliable": port_list }
+    return jsonify(data)
 
-    return jsonify(response)
+@app.get("/api/get_baudrates")
+def get_baudrates():
+    baudrate_list = antenna_serial.serial.BAUDRATES
+    data = { "baudrate_list": baudrate_list }
+    return jsonify(data)
+
+from flask import Response
+
+@app.post("/api/set_serial_config")
+def set_serial_config():
+    data = request.json
+    new_port = data["port"]
+    new_baurate = data["baudrate"]
+    new_timeout = data["timeout"]
+    return Response("", status.HTTP_201_CREATED)
 
 
+# conexão websocket
 @socketio.on("connect")
 def connect():
     app_logger.info("Cliente conectado")
