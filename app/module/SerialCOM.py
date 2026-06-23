@@ -14,10 +14,10 @@ class BaseCom:
         self.serial = Serial(
             port = None,
             baudrate = 115200,
-            timeout = None,
+            timeout = 1.0,
             xonxoff = False,
             rtscts = False,
-            write_timeout = None,
+            write_timeout = 1.0,
             dsrdtr = False,
             inter_byte_timeout = None
         )

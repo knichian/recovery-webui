@@ -116,46 +116,47 @@ def satellite_monitor():
         return redirect("/config")
 
 
-@app.route("/config", methods=["GET", "POST"])
-def serial_config():
-    if request.method == "GET":
-        return render_template("config.html")
-    elif request.method == "POST":
-        global antenna_serial_configured 
+# @app.route("/config", methods=["GET", "POST"])
+# def serial_config():
+#     if request.method == "GET":
+#         return render_template("config.html")
+#     elif request.method == "POST":
+#         global antenna_serial_configured 
+#
+#         data = request.form
+#
+#         serial_port: str = data["serial"]
+#         baudrate: int = int(data["baudrate"])
+#         timeout: float = float(data["timeout"])
+#
+#         # antenna_serial.configure_serial(serial_port, baudrate, timeout)
+#         antenna_serial.serial.port = serial_port
+#         antenna_serial.serial.baudrate = baudrate
+#         antenna_serial.serial.timeout = timeout
+#         antenna_serial.open()
+#         antenna_serial_configured = True
+#
+#         app_logger.info("Configuração atualizada:")
+#         app_logger.info(f"{serial_port=}")
+#         app_logger.info(f"{baudrate=}")
+#         app_logger.info(f"{timeout=}")
+#
+#         response = f'''
+#             Configuração Atualizada!
+#             {serial_port=}
+#             {baudrate=}
+#             {timeout=}
+#         '''
+#
+#         return ( response, status.HTTP_202_ACCEPTED )
+#     else:
+#         message = "metodo não suportado"
+#         app_logger.error(message)
+#         return ( message, status.HTTP_405_METHOD_NOT_ALLOWED )
 
-        data = request.form
-
-        serial_port: str = data["serial"]
-        baudrate: int = int(data["baudrate"])
-        timeout: float = float(data["timeout"])
-
-        # antenna_serial.configure_serial(serial_port, baudrate, timeout)
-        antenna_serial.serial.port = serial_port
-        antenna_serial.serial.baudrate = baudrate
-        antenna_serial.serial.timeout = timeout
-        antenna_serial.open()
-        antenna_serial_configured = True
-
-        app_logger.info("Configuração atualizada:")
-        app_logger.info(f"{serial_port=}")
-        app_logger.info(f"{baudrate=}")
-        app_logger.info(f"{timeout=}")
-
-        response = f'''
-            Configuração Atualizada!
-            {serial_port=}
-            {baudrate=}
-            {timeout=}
-        '''
-
-        return ( response, status.HTTP_202_ACCEPTED )
-    else:
-        message = "metodo não suportado"
-        app_logger.error(message)
-        return ( message, status.HTTP_405_METHOD_NOT_ALLOWED )
 
 @app.get("/config")
-def serial_config_2():
+def serial_config():
     return render_template("serial_config.html")
 
 
@@ -233,50 +234,49 @@ def background_thread():
 
     ws_logger.info("comunicação websocket iniciada")
 
-    with open(data_out_file_path, "a") as data_out_file:
-        while True:
-            try:
-                response = antenna_serial.read_response()
+    while True:
+        try:
+            response = antenna_serial.read_response()
 
-                if not response:
-                    continue
+            if not response:
+                continue
 
-                ws_logger.debug(f"Recebido -> {response}")
-                now = get_current_datetime()
+            ws_logger.debug(f"Recebido -> {response}")
+            now = get_current_datetime()
 
+            with open(data_out_file_path, "a") as data_out_file:
                 data_out_file.write(f"{now},{response}\n")
 
-                # with open(data_out_file_path, "a") as data_out_file:
-                #     data_out_file.write(f"{now},{response}\n")
+            # with open(data_out_file_path, "a") as data_out_file:
+            #     data_out_file.write(f"{now},{response}\n")
 
-                fields = response.split(",")
+            fields = response.split(",")
 
-                TEAM_ID = fields[0]
-                # millis =  fields[1]
-                # count =   fields[2]
-                altp =    fields[3]
-                temp =    fields[4]
-                umi =     fields[5]
-                p =       fields[6]
-                # gp =      fields[7]
-                # gr =      fields[8]
-                # gy =      fields[9]
-                # ap =      fields[10]
-                # ar =      fields[11]
-                # ay =      fields[12]
-                # hora =    fields[13]
-                # data =    fields[14]
-                # alt =     fields[15]
-                lat =     fields[16]
-                lon =     fields[17]
-                sat =     fields[18]
-                pqd =     fields[19]
-                rssi =    fields[20]
+            TEAM_ID = fields[0]
+            # millis =  fields[1]
+            # count =   fields[2]
+            altp =    fields[3]
+            temp =    fields[4]
+            umi =     fields[5]
+            p =       fields[6]
+            # gp =      fields[7]
+            # gr =      fields[8]
+            # gy =      fields[9]
+            # ap =      fields[10]
+            # ar =      fields[11]
+            # ay =      fields[12]
+            # hora =    fields[13]
+            # data =    fields[14]
+            # alt =     fields[15]
+            lat =     fields[16]
+            lon =     fields[17]
+            sat =     fields[18]
+            pqd =     fields[19]
+            rssi =    fields[20]
 
-
-                match TEAM_ID:
-                    case "#100":
-                         socketio.emit(
+            match TEAM_ID:
+                case "#100":
+                    socketio.emit(
                             "updateRocket",
                             {
                                 "latitude": lat,
@@ -286,11 +286,11 @@ def background_thread():
                                 "rssi": rssi,
                                 "pqd": pqd,
                                 "time": now,
-                            },
-                        )   
-                        
-                    case "#261":
-                        socketio.emit(
+                                },
+                            )   
+
+                case "#261":
+                    socketio.emit(
                             "updateSat",
                             {
                                 "latitude": lat,
@@ -302,16 +302,17 @@ def background_thread():
                                 "pressao": p,
                                 "rssi": rssi,
                                 "time": now,
-                            },
-                        )
-                    case _:
-                        app_logger.error(f"TEAM_ID não identificado: {TEAM_ID}")
+                                },
+                            )
 
-                # socketio.sleep(1)
+                case _:
+                    app_logger.error(f"TEAM_ID não identificado: {TEAM_ID}")
 
-            except Exception as e:
-                app_logger.error(f"Erro em background_thread -> {e}")
-                socketio.sleep(1)
+            # socketio.sleep(1)
+
+        except Exception as e:
+            app_logger.error(f"Erro em background_thread -> {e}")
+            socketio.sleep(1)
 
 
 def get_current_datetime():
