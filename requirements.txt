@@ -17,15 +17,10 @@ Flask-API==3.1
 Flask-SocketIO==5.5.1
 h11==0.16.0
 idna==3.18
-ipython==8.12.3
 itsdangerous==2.2.0
-jedi==0.20.0
 Jinja2==3.1.6
 jsonschema==4.26.0
 jsonschema-specifications==2025.9.1
-jupyter_client==8.9.1
-jupyter_core==5.9.1
-jupyterlab_pygments==0.3.0
 MarkupSafe==3.0.3
 matplotlib-inline==0.2.2
 mistune==3.2.1
@@ -43,8 +38,8 @@ platformdirs==4.10.0
 prompt_toolkit==3.0.52
 ptyprocess==0.7.0
 pure_eval==0.2.3
+pygame==2.6.1
 Pygments==2.20.0
-pyright==1.1.409
 pyserial==3.5
 python-dateutil==2.9.0.post0
 python-engineio==4.13.2

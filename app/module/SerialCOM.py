@@ -51,21 +51,30 @@ class BaseCom:
     def close(self):
         self.serial.close()
 
+    def get_baudrates(self) -> list:
+        return list(self.serial.BAUDRATES)
+
     def set_port(self, port) -> None:
+        self.logger.info(f"definindo porta como {port}")
         self.serial.port = port
+        self.logger.info(f"porta definida como {port}")
         return None
 
     def set_baudrate(self, baudrate) -> None:
+        self.logger.info(f"definindo baudrate como {baudrate}")
         self.serial.baudrate = baudrate
+        self.logger.info(f"baudrate definido como {baudrate}")
         return None
 
     def set_timeout(self, timeout) -> None:
+        self.logger.info(f"definindo timeout como {timeout}")
         self.serial.timeout = timeout
+        self.logger.info(f"timeout definido como {timeout}")
         return None
 
 
 
-    def list_ports(self):
+    def list_ports(self) -> list:
         if sys.platform.startswith('win'):  # For Windows
             return [port.device for port in serial.tools.list_ports.comports()]
         elif sys.platform.startswith(('linux', 'cygwin')): # For Linux and Cygwin

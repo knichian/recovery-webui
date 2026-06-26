@@ -1,17 +1,21 @@
 from typing import Callable
 
-from module import BaseCom, FakeCom, list_ports
+from module import BaseCom, FakeCom
 from flask import Flask, jsonify, redirect, render_template, request, redirect
 from flask import Response
 from flask import request
 from flask_api import status
 from flask_socketio import SocketIO
-from threading import Lock
+from threading import Lock, Thread
 from datetime import datetime
 from simple_term_menu import TerminalMenu
 import logging
 import sys
 import os
+import subprocess
+import pygame
+
+pygame.init()
 
 debug_mode: bool = False
 simulation_mode: bool = False
@@ -28,16 +32,17 @@ for option in sys.argv:
     # verificando se usa CLI
     if option == "--cli":
         cli_mode = True
+        # pygame.init()
 
 # configurando loggers
-app_logger = logging.getLogger("WebApp")
-ws_logger = app_logger.getChild("WebSocket")
-antenna_logger = app_logger.getChild("Antenna")
+main_logger = logging.getLogger("Cli_App") if cli_mode else logging.getLogger("WebApp")
+ws_logger = main_logger.getChild("WebSocket")
+antenna_logger = main_logger.getChild("Antenna")
 
 if debug_mode:
-    app_logger.setLevel(logging.DEBUG)
+    main_logger.setLevel(logging.DEBUG)
 else:
-    app_logger.setLevel(logging.INFO)
+    main_logger.setLevel(logging.INFO)
 
 current_day_date = datetime.now().strftime("%Y_%m_%d")
 log_file_name = f"webapp_log_{current_day_date}"
@@ -53,17 +58,17 @@ default_formater = logging.Formatter(
 console_handler.setFormatter(default_formater)
 file_handler.setFormatter(default_formater)
 
-app_logger.addHandler(console_handler)
-app_logger.addHandler(file_handler)
+if not cli_mode: main_logger.addHandler(console_handler)
+main_logger.addHandler(file_handler)
 
-app_logger.info("")
-app_logger.info("---------------------")
-app_logger.info("--- NOVA EXECUÇÃO ---")
-app_logger.info("---------------------")
-app_logger.info("")
+main_logger.info("")
+main_logger.info("---------------------")
+main_logger.info("--- NOVA EXECUÇÃO ---")
+main_logger.info("---------------------")
+main_logger.info("")
 
 if debug_mode:
-    app_logger.debug("modo debug ativado!")
+    main_logger.debug("modo debug ativado!")
 
 
 # interface serial
@@ -116,64 +121,9 @@ def satellite_monitor():
         return redirect("/config")
 
 
-# @app.route("/config", methods=["GET", "POST"])
-# def serial_config():
-#     if request.method == "GET":
-#         return render_template("config.html")
-#     elif request.method == "POST":
-#         global antenna_serial_configured 
-#
-#         data = request.form
-#
-#         serial_port: str = data["serial"]
-#         baudrate: int = int(data["baudrate"])
-#         timeout: float = float(data["timeout"])
-#
-#         # antenna_serial.configure_serial(serial_port, baudrate, timeout)
-#         antenna_serial.serial.port = serial_port
-#         antenna_serial.serial.baudrate = baudrate
-#         antenna_serial.serial.timeout = timeout
-#         antenna_serial.open()
-#         antenna_serial_configured = True
-#
-#         app_logger.info("Configuração atualizada:")
-#         app_logger.info(f"{serial_port=}")
-#         app_logger.info(f"{baudrate=}")
-#         app_logger.info(f"{timeout=}")
-#
-#         response = f'''
-#             Configuração Atualizada!
-#             {serial_port=}
-#             {baudrate=}
-#             {timeout=}
-#         '''
-#
-#         return ( response, status.HTTP_202_ACCEPTED )
-#     else:
-#         message = "metodo não suportado"
-#         app_logger.error(message)
-#         return ( message, status.HTTP_405_METHOD_NOT_ALLOWED )
-
-
 @app.get("/config")
 def serial_config():
     return render_template("serial_config.html")
-
-
-# @app.get("/config/fetch_serial")
-# def fetch_serial():
-#
-#     # serial_list = list_ports()
-#     #
-#     # response = {
-#     #         "serial_list": serial_list
-#     #         }
-#
-#     response = {
-#             "serial_list": [ "serial1", "serial2",  "serial3" ]
-#             }
-#
-#     return jsonify(response)
 
 
 # configurar serial pela webui
@@ -201,11 +151,11 @@ def set_serial_config():
     new_timeout = data["timeout"]
 
     antenna_serial.set_port(new_port)
-    app_logger.info(f"Porta serial configurada para: {new_port}")
+    main_logger.info(f"Porta serial configurada para: {new_port}")
     antenna_serial.set_baudrate(new_baurate)
-    app_logger.info(f"Baudrate configurado para: {new_baurate}")
+    main_logger.info(f"Baudrate configurado para: {new_baurate}")
     antenna_serial.set_timeout(new_timeout)
-    app_logger.info(f"Timeout configurado para: {new_timeout}")
+    main_logger.info(f"Timeout configurado para: {new_timeout}")
 
     return Response("", status.HTTP_201_CREATED)
 
@@ -213,7 +163,7 @@ def set_serial_config():
 # conexão websocket
 @socketio.on("connect")
 def connect():
-    app_logger.info("Cliente conectado")
+    main_logger.info("Cliente conectado")
     global thread
     with thread_lock:
         if thread is None:
@@ -222,7 +172,7 @@ def connect():
 
 @socketio.on("disconnect")
 def disconnect():
-    app_logger.info("Cliente desconectado")
+    main_logger.info("Cliente desconectado")
 
 
 def background_thread():
@@ -246,9 +196,6 @@ def background_thread():
 
             with open(data_out_file_path, "a") as data_out_file:
                 data_out_file.write(f"{now},{response}\n")
-
-            # with open(data_out_file_path, "a") as data_out_file:
-            #     data_out_file.write(f"{now},{response}\n")
 
             fields = response.split(",")
 
@@ -306,12 +253,12 @@ def background_thread():
                             )
 
                 case _:
-                    app_logger.error(f"TEAM_ID não identificado: {TEAM_ID}")
+                    main_logger.error(f"TEAM_ID não identificado: {TEAM_ID}")
 
             # socketio.sleep(1)
 
         except Exception as e:
-            app_logger.error(f"Erro em background_thread -> {e}")
+            main_logger.error(f"Erro em background_thread -> {e}")
             socketio.sleep(1)
 
 
@@ -319,60 +266,153 @@ def get_current_datetime():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
+def cli_clear():
+    subprocess.call("clear" if os.name == "posix" else "cls")
+
+
 def cli_configure_serial_select_port():
-    # TODO: make a menu function to select the serial port
-    ports = list_ports()
-    if ports:
-        # app_logger.debug("Portas seriais disponíveis:")
-        print("Portas seriais disponíveis:")
-        for i, port in enumerate(ports):
-            # app_logger.debug(f"{i + 1}: {port}")
-            print(f"\t{i + 1}: {port}")
-        ...
-    else:
-        # app_logger.debug("Nenhuma porta serial encontrada")
-        print("Nenhuma porta serial encontrada")
-    ...
+
+    ports: list = antenna_serial.list_ports()
+    no_change_option: str = "Não mudar"
+
+    menu_title = f"Selecione a porta: {'(nenhuma porta encontrada)' if not ports else ''}"
+
+    options: list = ports if ports else []
+    options.append(no_change_option)
+
+    menu = TerminalMenu(options, title=menu_title)
+
+    chosen_index = menu.show()
+
+    if options[chosen_index] != no_change_option: # pyright: ignore
+        antenna_serial.set_port(options[chosen_index]) # pyright: ignore
+
+    return cli_configure_serial
+
 
 def cli_configure_serial_select_baudrate():
-    # TODO: make a menu function to select the serial baudrate
-    # try:
-    #     print(antenna_serial.serial.baudrate) # (...)
-    #     pass
-    # except:
-    #     app_logger.error( "erro ao configurar baudrate" )
-    ...
+
+    baudrates: list = antenna_serial.get_baudrates()
+
+    menu_title = "Selecione o baudrate:"
+    menu_options = [ str(option) for option in baudrates]
+    no_change_option: str = "Não mudar"
+
+    menu_options.append(no_change_option)
+
+    menu = TerminalMenu(menu_options, title=menu_title)
+
+    chosen_index = menu.show()
+
+    if menu_options[chosen_index] != no_change_option: # pyright: ignore
+        antenna_serial.set_baudrate(int(menu_options[chosen_index])) # pyright: ignore
+    
+    return cli_configure_serial
+
 
 def cli_configure_serial_select_timeout():
     # TODO: make a menu function to select the serial timeout
-    ...
+
+    menu_title = "Selecione o timeout:"
+    timeouts = [ 0, 0.25, 0.5, 1.0, 2.0, 2.5, 5.0, 7.5, 10 ] 
+    menu_options = [ str(option) for option in timeouts]
+    no_change_option: str = "Não mudar"
+
+    menu_options.append(no_change_option)
+
+    menu = TerminalMenu(menu_options, title=menu_title)
+
+    chosen_index = menu.show()
+
+    if menu_options[chosen_index] != no_change_option: # pyright: ignore
+        antenna_serial.set_timeout(float(menu_options[chosen_index])) # pyright: ignore
+    
+    return cli_configure_serial
+
 
 def cli_configure_serial():
     # TODO: make a menu function to configure the serial
-    ...
+    menu_title = f"Configuração Serial:"
+    
+    menu_options = [
+            "Selecionar porta",
+            "Selecionar baudrate",
+            "Selecionar timeout",
+            "Sair da configuração"
+            ]
+
+    menu = TerminalMenu(menu_options, title=menu_title)
+    menu_chosen_index = menu.show()
+
+    match menu_chosen_index:
+        case 0: 
+            return cli_configure_serial_select_port
+        case 1: 
+            return cli_configure_serial_select_baudrate
+        case 2: 
+            return cli_configure_serial_select_timeout
+        case 3:
+            return cli_main_menu
 
 
-def cli_monitor_serial_data():
-    ...
+def cli_record_serial_data(): # TODO: make this function...
+
+    current_time_stamp = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+    data_out_file_path = f"data/data_{current_time_stamp}.csv"
+
+    with open(data_out_file_path, "w") as data_out_file:
+        data_out_file.write( f"NOW,TEAM_ID,millis,count,altp,temp,umi,p,gp,gr,gy,ap,ar,ay,hora,data,alt,lat,lon,sat,pqd,rssi\n" )
+
+    while True:
+
+        events = pygame.event.get()
+
+        for event in events:
+            if event.type == pygame.KEYDOWN :
+                if (event.key == pygame.K_q) or (event.key == pygame.K_ESCAPE):
+                    return cli_main_menu
+
+        response = antenna_serial.read_response()
+
+        if not response: continue
+
+        now = get_current_datetime()
+        
+        with open(data_out_file_path, "a") as data_out_file:
+            data_out_file.write(f"{now},{response}\n")
+            print(f"Recebido -> {now},{response}")
+            
+        # return cli_main_menu
+
 
 def cli_serial_on():
-    antenna_serial.open()
+    try:
+        antenna_serial.open()
+
+    except:
+        main_logger.error("porta serial ocupada")
+    return cli_main_menu
+
 
 def cli_serial_off():
     antenna_serial.close()
+    return cli_main_menu
 
 
 def cli_main_menu() -> Callable | None:
 
-    # serial_configuration_status = antenna_serial.check_configured()
+    # limpar terminal
+    cli_clear()
+
+    # menu principal
     serial_connection_status = antenna_serial.check_connected()
 
     main_menu_title = f'''
     Menu Principal:
-        Port -> {antenna_serial.serial.port}
+        Port -> {"indefinida" if (antenna_serial.serial.port == None) else antenna_serial.serial.port}
         Baudrate -> {antenna_serial.serial.baudrate}
         Timeout -> {antenna_serial.serial.timeout}
-        Status -> {antenna_serial.check_connected()}
+        Status -> {"conectado" if antenna_serial.check_connected() else "desconectado"}
 
     '''
     main_menu_options = [
@@ -400,12 +440,15 @@ def cli_main_menu() -> Callable | None:
             return cli_configure_serial
         case 3:  # monitor cli option
             # TODO: figure out how to use pygame to get real time keyboard input
-            return cli_monitor_serial_data
+            if antenna_serial.check_connected():
+                return cli_record_serial_data
+            else:
+                return cli_main_menu
         case 4:   # quit option
-            app_logger.info("CLI app finalizado")
+            main_logger.info("CLI app finalizado")
             return None
         case _:
-            app_logger.critical("Erro em menu CLI!")
+            main_logger.critical("Erro em menu CLI!")
             return None
 
 
