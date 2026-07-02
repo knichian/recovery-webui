@@ -270,7 +270,7 @@ def cli_clear():
     subprocess.call("clear" if os.name == "posix" else "cls")
 
 
-def cli_configure_serial_select_port():
+def cli_configure_serial_select_port() -> ( Callable | None ):
 
     ports: list = antenna_serial.list_ports()
     no_change_option: str = "Não mudar"
@@ -290,7 +290,7 @@ def cli_configure_serial_select_port():
     return cli_configure_serial
 
 
-def cli_configure_serial_select_baudrate():
+def cli_configure_serial_select_baudrate() -> ( Callable | None ):
 
     baudrates: list = antenna_serial.get_baudrates()
 
@@ -310,7 +310,7 @@ def cli_configure_serial_select_baudrate():
     return cli_configure_serial
 
 
-def cli_configure_serial_select_timeout():
+def cli_configure_serial_select_timeout() -> ( Callable | None ):
     # TODO: make a menu function to select the serial timeout
 
     menu_title = "Selecione o timeout:"
@@ -330,7 +330,7 @@ def cli_configure_serial_select_timeout():
     return cli_configure_serial
 
 
-def cli_configure_serial():
+def cli_configure_serial() -> ( Callable | None ):
     # TODO: make a menu function to configure the serial
     menu_title = f"Configuração Serial:"
     
@@ -355,7 +355,7 @@ def cli_configure_serial():
             return cli_main_menu
 
 
-def cli_record_serial_data(): # TODO: make this function...
+def cli_record_serial_data() -> ( Callable | None ): # TODO: make this function...
 
     current_time_stamp = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
     data_out_file_path = f"data/data_{current_time_stamp}.csv"
@@ -385,7 +385,7 @@ def cli_record_serial_data(): # TODO: make this function...
         # return cli_main_menu
 
 
-def cli_serial_on():
+def cli_serial_on() -> ( Callable | None ):
     try:
         antenna_serial.open()
 
@@ -394,12 +394,12 @@ def cli_serial_on():
     return cli_main_menu
 
 
-def cli_serial_off():
+def cli_serial_off() -> ( Callable | None ):
     antenna_serial.close()
     return cli_main_menu
 
 
-def cli_main_menu() -> Callable | None:
+def cli_main_menu() -> ( Callable | None ):
 
     # limpar terminal
     cli_clear()
