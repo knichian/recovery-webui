@@ -415,6 +415,7 @@ def cli_main_menu() -> ( Callable | None ):
         Status -> {"conectado" if antenna_serial.check_connected() else "desconectado"}
 
     '''
+
     main_menu_options = [
             "Atualizar status da serial",
             ("Desativar serial" if serial_connection_status else "Ativar serial"),
