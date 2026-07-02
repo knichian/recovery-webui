@@ -13,13 +13,17 @@ import logging
 import sys
 import os
 import subprocess
-import pygame
 
-pygame.init()
 
+# variaves que definem modos de funcionamento
 debug_mode: bool = False
 simulation_mode: bool = False
 cli_mode: bool = False
+
+# variaveis de funcionalidade para o cli_mode
+cli_display_data: bool = False
+cli_thread = None
+cli_record_data = True
 
 # verificando os argumentos passados para cli
 for option in sys.argv:
@@ -355,7 +359,11 @@ def cli_configure_serial() -> ( Callable | None ):
             return cli_main_menu
 
 
+# callback para registra os dado apartir de uma thread secundaria, e se exibir no terminal se selecionado
 def cli_record_serial_data() -> ( Callable | None ): # TODO: make this function...
+
+    global cli_record_data 
+    cli_record_data = True
 
     current_time_stamp = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
     data_out_file_path = f"data/data_{current_time_stamp}.csv"
@@ -363,39 +371,41 @@ def cli_record_serial_data() -> ( Callable | None ): # TODO: make this function.
     with open(data_out_file_path, "w") as data_out_file:
         data_out_file.write( f"NOW,TEAM_ID,millis,count,altp,temp,umi,p,gp,gr,gy,ap,ar,ay,hora,data,alt,lat,lon,sat,pqd,rssi\n" )
 
-    while True:
-
-        events = pygame.event.get()
-
-        for event in events:
-            if event.type == pygame.KEYDOWN :
-                if (event.key == pygame.K_q) or (event.key == pygame.K_ESCAPE):
-                    return cli_main_menu
+    while cli_record_data:
 
         response = antenna_serial.read_response()
 
-        if not response: continue
+        if not response: 
+            continue
 
         now = get_current_datetime()
         
         with open(data_out_file_path, "a") as data_out_file:
             data_out_file.write(f"{now},{response}\n")
+
+        if cli_display_data: 
             print(f"Recebido -> {now},{response}")
-            
-        # return cli_main_menu
+
+    return None
 
 
 def cli_serial_on() -> ( Callable | None ):
     try:
+        global cli_thread 
         antenna_serial.open()
-
+        cli_thread = Thread( target=cli_record_serial_data, daemon=True )
+        cli_thread.start()
     except:
-        main_logger.error("porta serial ocupada")
+        main_logger.error("Problema em abrir conexão com antena")
+
     return cli_main_menu
 
 
 def cli_serial_off() -> ( Callable | None ):
-    antenna_serial.close()
+    try:
+        antenna_serial.close()
+    except:
+        main_logger.error("Problema em fechar conexão com antena")
     return cli_main_menu
 
 
