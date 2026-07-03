@@ -1,3 +1,4 @@
+# from enum import global_enum_repr
 from typing import Callable
 
 from module import BaseCom, FakeCom
@@ -8,11 +9,12 @@ from flask_api import status
 from flask_socketio import SocketIO
 from threading import Lock, Thread
 from datetime import datetime
-from simple_term_menu import TerminalMenu
+from simple_term_menu import TerminalMenu, main
 import logging
 import sys
 import os
 import subprocess
+import asyncio
 
 
 # variaves que definem modos de funcionamento
@@ -20,23 +22,36 @@ debug_mode: bool = False
 simulation_mode: bool = False
 cli_mode: bool = False
 
+
 # variaveis de funcionalidade para o cli_mode
 cli_display_data: bool = False
-cli_thread = None
-cli_record_data = True
+cli_record_data = False
+cli_thread # pyright: ignore
+cli_thread_lock = Lock()
+
 
 # verificando os argumentos passados para cli
 for option in sys.argv:
     # verificando se o modo debug foi solicitado 
+    if option == "--help":
+        cli_help_message = """
+        Opções:
+            --help
+            --debug
+            --cli
+            --simulation
+        """
+        print(cli_help_message)
+        sys.exit(0)
     if option == "--debug":
         debug_mode = True
     # verificando se o modo simulação foi solicitado 
-    if option == "--simulation":
+    if option == "--simulation": # TODO: consider changing to "--synth"
         simulation_mode = True
     # verificando se usa CLI
     if option == "--cli":
         cli_mode = True
-        # pygame.init()
+
 
 # configurando loggers
 main_logger = logging.getLogger("Cli_App") if cli_mode else logging.getLogger("WebApp")
@@ -74,6 +89,8 @@ main_logger.info("")
 if debug_mode:
     main_logger.debug("modo debug ativado!")
 
+if simulation_mode:
+    main_logger.debug("modo simulação ativado!")
 
 # interface serial
 antenna_serial_configured: bool = False
@@ -133,7 +150,7 @@ def serial_config():
 # configurar serial pela webui
 @app.get("/api/get_serial_ports")
 def get_serial_ports():
-    port_list = antenna_serial.list_ports()
+    port_list = antenna_serial.get_port_options()
     data = { "ports_avaliable": port_list }
     return jsonify(data)
 
@@ -180,13 +197,16 @@ def disconnect():
 
 
 def background_thread():
+    ws_logger.info("comunicação websocket iniciada")
+
     current_time_stamp = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-    data_out_file_path = f"data/data_{current_time_stamp}.csv"
+    data_out_file_name = f"data_{current_time_stamp}.csv"
+    data_out_file_path = f"data/{data_out_file_name}"
 
     with open(data_out_file_path, "w") as data_out_file:
         data_out_file.write( f"NOW,TEAM_ID,millis,count,altp,temp,umi,p,gp,gr,gy,ap,ar,ay,hora,data,alt,lat,lon,sat,pqd,rssi\n" )
 
-    ws_logger.info("comunicação websocket iniciada")
+    ws_logger.info(f"arquivo de captura de dado {data_out_file_name} criado")
 
     while True:
         try:
@@ -276,7 +296,8 @@ def cli_clear():
 
 def cli_configure_serial_select_port() -> ( Callable | None ):
 
-    ports: list = antenna_serial.list_ports()
+    # ports: list = antenna_serial.list_ports()
+    ports: list = antenna_serial.get_port_options()
     no_change_option: str = "Não mudar"
 
     menu_title = f"Selecione a porta: {'(nenhuma porta encontrada)' if not ports else ''}"
@@ -296,7 +317,7 @@ def cli_configure_serial_select_port() -> ( Callable | None ):
 
 def cli_configure_serial_select_baudrate() -> ( Callable | None ):
 
-    baudrates: list = antenna_serial.get_baudrates()
+    baudrates: list = antenna_serial.get_baudrate_options()
 
     menu_title = "Selecione o baudrate:"
     menu_options = [ str(option) for option in baudrates]
@@ -360,8 +381,8 @@ def cli_configure_serial() -> ( Callable | None ):
 
 
 # callback para registra os dado apartir de uma thread secundaria, e se exibir no terminal se selecionado
-def cli_record_serial_data() -> ( Callable | None ): # TODO: make this function...
-
+async def cli_record_serial_data_thread() -> ( Callable | None ):
+    main_logger.info("thread de captura de dados inicializada")
     global cli_record_data 
     cli_record_data = True
 
@@ -371,6 +392,7 @@ def cli_record_serial_data() -> ( Callable | None ): # TODO: make this function.
     with open(data_out_file_path, "w") as data_out_file:
         data_out_file.write( f"NOW,TEAM_ID,millis,count,altp,temp,umi,p,gp,gr,gy,ap,ar,ay,hora,data,alt,lat,lon,sat,pqd,rssi\n" )
 
+    # main_logger.info("captura de dados iniciada")
     while cli_record_data:
 
         response = antenna_serial.read_response()
@@ -383,18 +405,29 @@ def cli_record_serial_data() -> ( Callable | None ): # TODO: make this function.
         with open(data_out_file_path, "a") as data_out_file:
             data_out_file.write(f"{now},{response}\n")
 
+        print("output-test")
         if cli_display_data: 
             print(f"Recebido -> {now},{response}")
-
+        
+    main_logger.info("thread de captura de dados finalizada")
     return None
+
+
+def cli_monitor_serial_data():
+    cli_clear()
+    global cli_display_data
+    with cli_thread_lock:
+        cli_display_data = True
+    input('')
+    cli_display_data = False
+    return cli_main_menu
 
 
 def cli_serial_on() -> ( Callable | None ):
     try:
         global cli_thread 
         antenna_serial.open()
-        cli_thread = Thread( target=cli_record_serial_data, daemon=True )
-        cli_thread.start()
+        cli_thread = asyncio.create_task(cli_record_serial_data_thread())
     except:
         main_logger.error("Problema em abrir conexão com antena")
 
@@ -403,9 +436,13 @@ def cli_serial_on() -> ( Callable | None ):
 
 def cli_serial_off() -> ( Callable | None ):
     try:
+        global cli_thread
+        cli_thread.cancel()
         antenna_serial.close()
     except:
         main_logger.error("Problema em fechar conexão com antena")
+        sys.exit(-1)
+        # stoped here!!!
     return cli_main_menu
 
 
@@ -419,9 +456,9 @@ def cli_main_menu() -> ( Callable | None ):
 
     main_menu_title = f'''
     Menu Principal:
-        Port -> {"indefinida" if (antenna_serial.serial.port == None) else antenna_serial.serial.port}
-        Baudrate -> {antenna_serial.serial.baudrate}
-        Timeout -> {antenna_serial.serial.timeout}
+        Port -> {"indefinida" if (antenna_serial.get_port() == None) else antenna_serial.get_port()}
+        Baudrate -> {antenna_serial.get_baudrate()}
+        Timeout -> {antenna_serial.get_timeout()}
         Status -> {"conectado" if antenna_serial.check_connected() else "desconectado"}
 
     '''
@@ -438,27 +475,26 @@ def cli_main_menu() -> ( Callable | None ):
     main_menu_chosen_index = main_menu.show()
     
     match main_menu_chosen_index:
-        case 0:
+        case 0: # atualiza os status na tela principal do menu
             return cli_main_menu
-        case 1:   # activate/deactivate serial cli option
+        case 1:   # ativa ou desativa a conexão serial, dependendo do estado atual
             match serial_connection_status:
                 case True:
                     return cli_serial_off
                 case False:
                     return cli_serial_on
-        case 2:  # configure cli option
-            # TODO: make the function to configure the antenna
+        case 2:  # configura a conexão serial (porta, baudrate, timeout)
             return cli_configure_serial
-        case 3:  # monitor cli option
-            # TODO: figure out how to use pygame to get real time keyboard input
+        # TODO: finish this function
+        case 3:  # exibe os dado sendo capturados no terminal (incompleta...)
             if antenna_serial.check_connected():
-                return cli_record_serial_data
+                return cli_record_serial_data_thread
             else:
                 return cli_main_menu
-        case 4:   # quit option
+        case 4: # fecha a aplicação
             main_logger.info("CLI app finalizado")
             return None
-        case _:
+        case _: # opção inesperada, fecha a aplicação e marca um erro nos logs
             main_logger.critical("Erro em menu CLI!")
             return None
 
@@ -466,8 +502,6 @@ def cli_main_menu() -> ( Callable | None ):
 if __name__ == "__main__":
 
     if cli_mode:
-        # TODO: make cli interface
-        # TODO: make a state machine to power the cli interface
         next_state: ( Callable | None ) = cli_main_menu()
 
         while next_state:

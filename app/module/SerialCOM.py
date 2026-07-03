@@ -1,5 +1,5 @@
 # import serial
-from datetime import time
+# from datetime import time
 
 import serial.tools.list_ports
 from serial import Serial, SerialException
@@ -23,14 +23,12 @@ class BaseCom:
         )
         self.logger.info("interface de comunicação criada")
 
-
     # Envia um comando serial
     def send_command(self, command: bytes):
         try:
             self.serial.write(command)
         except SerialException as err:
             self.logger.error(f"erro de comunicação serial -> {err}")
-
 
     # Recebe uma string serial
     def read_response(self):
@@ -51,8 +49,31 @@ class BaseCom:
     def close(self):
         self.serial.close()
 
-    def get_baudrates(self) -> list:
+    def get_port_options(self):
+        if sys.platform.startswith('win'):  # For Windows
+            return [port.device for port in serial.tools.list_ports.comports()]
+        elif sys.platform.startswith(('linux', 'cygwin')): # For Linux and Cygwin
+            return [port.device for port in serial.tools.list_ports.comports() if '/dev/ttyACM' in port.device]
+        else:
+            return []
+
+    def get_baudrate_options(self) -> list:
         return list(self.serial.BAUDRATES)
+
+    def get_timeout_options(self) -> list:
+        # timeout_options = [ option for option ] # WARNING: incomplete instruction! 
+        # return [] # WARNING: incomplete instruction! 
+        timeouts = [ 0, 0.25, 0.5, 1.0, 2.0, 2.5, 5.0, 7.5, 10 ] 
+        return timeouts
+
+    def get_port(self) -> ( str | None ):
+        return self.serial.port
+
+    def get_baudrate(self) -> int:
+        return self.serial.baudrate
+
+    def get_timeout(self) -> ( float | None ):
+        return self.serial.timeout
 
     def set_port(self, port) -> None:
         self.logger.info(f"definindo porta como {port}")
@@ -72,8 +93,6 @@ class BaseCom:
         self.logger.info(f"timeout definido como {timeout}")
         return None
 
-
-
     def list_ports(self) -> list:
         if sys.platform.startswith('win'):  # For Windows
             return [port.device for port in serial.tools.list_ports.comports()]
@@ -81,7 +100,6 @@ class BaseCom:
             return [port.device for port in serial.tools.list_ports.comports() if '/dev/ttyACM' in port.device]
         else:
             return []
-
 
 
 # Lista as portas seriais disponíveis
