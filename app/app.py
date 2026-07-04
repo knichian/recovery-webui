@@ -9,12 +9,11 @@ from flask_api import status
 from flask_socketio import SocketIO
 from threading import Lock, Thread
 from datetime import datetime
-from simple_term_menu import TerminalMenu, main
+from simple_term_menu import TerminalMenu
 import logging
 import sys
 import os
 import subprocess
-import asyncio
 
 
 # variaves que definem modos de funcionamento
@@ -24,8 +23,8 @@ cli_mode: bool = False
 
 
 # variaveis de funcionalidade para o cli_mode
-cli_display_data: bool = False
-cli_record_data = False
+cli_display_data_flag: bool = False
+cli_record_data_flag = False
 cli_thread # pyright: ignore
 cli_thread_lock = Lock()
 
@@ -380,34 +379,44 @@ def cli_configure_serial() -> ( Callable | None ):
             return cli_main_menu
 
 
-# callback para registra os dado apartir de uma thread secundaria, e se exibir no terminal se selecionado
-async def cli_record_serial_data_thread() -> ( Callable | None ):
+# callback para registra os dado apartir de uma thread-secundaria, e se exibir no terminal se selecionado
+def cli_record_serial_data_thread() -> None:
+
     main_logger.info("thread de captura de dados inicializada")
-    global cli_record_data 
-    cli_record_data = True
 
+    # variaveis de passagem que controlam a thread-secundaria a partir da thread-principal
+    global cli_record_data_flag # variavel de passagem que controla o loop de captura de dados
+    global cli_display_data_flag # variavel de passagem controla a exibição das leituras no terminal (exibe caso esteja na tela de monitoramento)
+    
+    # logica principal da thread-secundaria
+    global cli_thread_lock
+
+    # definição do arquivo de saida para a coleta de dados
     current_time_stamp = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-    data_out_file_path = f"data/data_{current_time_stamp}.csv"
+    data_out_file_name = f"data_{current_time_stamp}" 
+    data_out_file_extention = "csv"
+    data_out_file_name_full = f"{data_out_file_name}.{data_out_file_extention}" 
+    data_out_file_path = f"data/{data_out_file_name_full}" 
 
-    with open(data_out_file_path, "w") as data_out_file:
-        data_out_file.write( f"NOW,TEAM_ID,millis,count,altp,temp,umi,p,gp,gr,gy,ap,ar,ay,hora,data,alt,lat,lon,sat,pqd,rssi\n" )
+    with open(data_out_file_path, "w") as data_out_file: # cria o arquivo CSV de para captura de dado desta sessão
+        data_out_file.write( f"NOW,TEAM_ID,millis,count,altp,temp,umi,p,gp,gr,gy,ap,ar,ay,hora,data,alt,lat,lon,sat,pqd,rssi\n" )     # escreve o cabeçalho na primeira linha do CSV
 
-    # main_logger.info("captura de dados iniciada")
-    while cli_record_data:
+    while cli_record_data_flag: # loop da captura de dados
 
-        response = antenna_serial.read_response()
+        response = antenna_serial.read_response() # lê 1 "pacote" enviado pela antena
 
-        if not response: 
+        if not response: # testa se conseguiu receber o pacote, caso não, reinicia o ciclo e tenta ler de novo
             continue
 
-        now = get_current_datetime()
+        now = get_current_datetime() # pega o horario atual
         
-        with open(data_out_file_path, "a") as data_out_file:
-            data_out_file.write(f"{now},{response}\n")
+        with open(data_out_file_path, "a") as data_out_file: 
+            data_out_file.write(f"{now},{response}\n") # grava o pacote no CSV, anexado(prefixado) com a data que a leitura foi capturada
 
-        print("output-test")
-        if cli_display_data: 
-            print(f"Recebido -> {now},{response}")
+        # print("output-test")
+        with cli_thread_lock:
+            if cli_display_data_flag: # exibe no terminal os dados ... caso esteja na tela de     
+                print(f"Recebido -> {now},{response}")
         
     main_logger.info("thread de captura de dados finalizada")
     return None
@@ -415,19 +424,26 @@ async def cli_record_serial_data_thread() -> ( Callable | None ):
 
 def cli_monitor_serial_data():
     cli_clear()
-    global cli_display_data
+    global cli_display_data_flag
     with cli_thread_lock:
-        cli_display_data = True
+        cli_display_data_flag = True
     input('')
-    cli_display_data = False
+    cli_display_data_flag = False
     return cli_main_menu
 
 
 def cli_serial_on() -> ( Callable | None ):
     try:
-        global cli_thread 
+        # inicia a conexão serial
         antenna_serial.open()
-        cli_thread = asyncio.create_task(cli_record_serial_data_thread())
+
+        # inicia a captura de dados
+        global cli_thread 
+        global cli_record_data_flag
+        cli_thread = Thread( target=cli_record_serial_data_thread, daemon=True ) # cria a Thread de captura de dados
+        cli_record_data_flag = True # ativa o loop dentro da Thread de captura de dados
+        cli_thread.start() # inicia a Thread de captura de dados
+
     except:
         main_logger.error("Problema em abrir conexão com antena")
 
@@ -436,13 +452,19 @@ def cli_serial_on() -> ( Callable | None ):
 
 def cli_serial_off() -> ( Callable | None ):
     try:
-        global cli_thread
-        cli_thread.cancel()
-        antenna_serial.close()
+
+        # finaliza a captura de dados
+        global cli_record_data_flag
+        cli_record_data_flag = False # fecha a Thread de captura de dados
+
+        # finaliza a conexão serial
+        antenna_serial.close() 
+
     except:
+
         main_logger.error("Problema em fechar conexão com antena")
-        sys.exit(-1)
-        # stoped here!!!
+        sys.exit(1)
+
     return cli_main_menu
 
 
