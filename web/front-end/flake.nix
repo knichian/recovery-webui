@@ -14,7 +14,9 @@
     devShells.${system}.default = pkgs.mkShell {
       buildInputs = [
         pkgs.nodejs
+        pkgs.prettierd
       ];
+      PRETTIERD_LOCAL_PRETTIER_ONLY = true;
     };
   };
 }
