@@ -19,7 +19,7 @@ class FakeCom(BaseCom):
         # return super().read_response()
         if self.is_open:
             # return "NOW,TEAM_ID,millis,count,altp,temp,umi,p,gp,gr,gy,ap,ar,ay,hora,data,alt,lat,lon,sat,pqd,rssi\n"
-            return "NOW,TEAM_ID,millis,count,altp,temp,umi,p,gp,gr,gy,ap,ar,ay,hora,data,alt,lat,lon,sat,pqd,rssi"
+            return "TEAM_ID,millis,count,altp,temp,umi,p,gp,gr,gy,ap,ar,ay,hora,data,alt,lat,lon,sat,pqd,rssi"
         else:
             self.logger.error("conexão serial fechada")
             return None

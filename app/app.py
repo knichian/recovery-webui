@@ -14,6 +14,7 @@ import logging
 import sys
 import os
 import subprocess
+import time
 
 
 # variaves que definem modos de funcionamento
@@ -25,8 +26,9 @@ cli_mode: bool = False
 # variaveis de funcionalidade para o cli_mode
 cli_display_data_flag: bool = False
 cli_record_data_flag = False
-cli_thread # pyright: ignore
+cli_thread = None # pyright: ignore
 cli_thread_lock = Lock()
+cli_thread_loop_write_interval_s: float = 0.5 # define o intervalo de gravação no CSV
 
 
 # verificando os argumentos passados para cli
@@ -34,11 +36,11 @@ for option in sys.argv:
     # verificando se o modo debug foi solicitado 
     if option == "--help":
         cli_help_message = """
-        Opções:
-            --help
-            --debug
-            --cli
-            --simulation
+Opções:
+    --help
+    --debug
+    --cli
+    --simulation
         """
         print(cli_help_message)
         sys.exit(0)
@@ -355,31 +357,33 @@ def cli_configure_serial_select_timeout() -> ( Callable | None ):
 
 
 def cli_configure_serial() -> ( Callable | None ):
-    # TODO: make a menu function to configure the serial
-    menu_title = f"Configuração Serial:"
-    
-    menu_options = [
-            "Selecionar porta",
-            "Selecionar baudrate",
-            "Selecionar timeout",
-            "Sair da configuração"
-            ]
+    if antenna_serial.check_connected(): # bloqueia a edição da configuração serial se a conexão estiver ativa
+        return cli_main_menu
+    else:
+        menu_title = f"Configuração Serial:"
+        
+        menu_options = [
+                "Selecionar porta",
+                "Selecionar baudrate",
+                "Selecionar timeout",
+                "Finalizar edição"
+                ]
 
-    menu = TerminalMenu(menu_options, title=menu_title)
-    menu_chosen_index = menu.show()
+        menu = TerminalMenu(menu_options, title=menu_title)
+        menu_chosen_index = menu.show()
 
-    match menu_chosen_index:
-        case 0: 
-            return cli_configure_serial_select_port
-        case 1: 
-            return cli_configure_serial_select_baudrate
-        case 2: 
-            return cli_configure_serial_select_timeout
-        case 3:
-            return cli_main_menu
+        match menu_chosen_index:
+            case 0: 
+                return cli_configure_serial_select_port
+            case 1: 
+                return cli_configure_serial_select_baudrate
+            case 2: 
+                return cli_configure_serial_select_timeout
+            case 3:
+                return cli_main_menu
 
 
-# callback para registra os dado apartir de uma thread-secundaria, e se exibir no terminal se selecionado
+# callback para thread-secundaria que registra os dado, e se exibir no terminal se selecionado
 def cli_record_serial_data_thread() -> None:
 
     main_logger.info("thread de captura de dados inicializada")
@@ -390,6 +394,7 @@ def cli_record_serial_data_thread() -> None:
     
     # logica principal da thread-secundaria
     global cli_thread_lock
+    global cli_thread_loop_write_interval_s
 
     # definição do arquivo de saida para a coleta de dados
     current_time_stamp = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
@@ -413,22 +418,23 @@ def cli_record_serial_data_thread() -> None:
         with open(data_out_file_path, "a") as data_out_file: 
             data_out_file.write(f"{now},{response}\n") # grava o pacote no CSV, anexado(prefixado) com a data que a leitura foi capturada
 
-        # print("output-test")
-        with cli_thread_lock:
-            if cli_display_data_flag: # exibe no terminal os dados ... caso esteja na tela de     
-                print(f"Recebido -> {now},{response}")
+        if cli_display_data_flag: # exibe no terminal os dados ... caso esteja na tela de     
+            print(f"Recebido -> {now},{response}")
+
+        time.sleep(cli_thread_loop_write_interval_s)
         
     main_logger.info("thread de captura de dados finalizada")
     return None
 
 
 def cli_monitor_serial_data():
-    cli_clear()
-    global cli_display_data_flag
-    with cli_thread_lock:
+    if antenna_serial.check_connected():
+        cli_clear() # limpa o terminal para exibir os dados
+        global cli_display_data_flag
         cli_display_data_flag = True
-    input('')
-    cli_display_data_flag = False
+        print(f"{cli_display_data_flag=}")
+        input('')
+        cli_display_data_flag = False
     return cli_main_menu
 
 
@@ -481,7 +487,10 @@ def cli_main_menu() -> ( Callable | None ):
         Port -> {"indefinida" if (antenna_serial.get_port() == None) else antenna_serial.get_port()}
         Baudrate -> {antenna_serial.get_baudrate()}
         Timeout -> {antenna_serial.get_timeout()}
-        Status -> {"conectado" if antenna_serial.check_connected() else "desconectado"}
+
+        Status Serial -> {"conectado" if antenna_serial.check_connected() else "desconectado"}
+        Captura de dados -> {"ativada" if cli_record_data_flag else "desativada"}
+        Intervalo de captura -> {cli_thread_loop_write_interval_s} sec
 
     '''
 
@@ -510,7 +519,7 @@ def cli_main_menu() -> ( Callable | None ):
         # TODO: finish this function
         case 3:  # exibe os dado sendo capturados no terminal (incompleta...)
             if antenna_serial.check_connected():
-                return cli_record_serial_data_thread
+                return cli_monitor_serial_data
             else:
                 return cli_main_menu
         case 4: # fecha a aplicação
