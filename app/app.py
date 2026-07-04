@@ -432,8 +432,7 @@ def cli_monitor_serial_data():
         cli_clear() # limpa o terminal para exibir os dados
         global cli_display_data_flag
         cli_display_data_flag = True
-        print(f"{cli_display_data_flag=}")
-        input('')
+        input("Pressione <Enter> para Sair!\n\n")
         cli_display_data_flag = False
     return cli_main_menu
 
@@ -485,8 +484,8 @@ def cli_main_menu() -> ( Callable | None ):
     main_menu_title = f'''
     Menu Principal:
         Port -> {"indefinida" if (antenna_serial.get_port() == None) else antenna_serial.get_port()}
-        Baudrate -> {antenna_serial.get_baudrate()}
-        Timeout -> {antenna_serial.get_timeout()}
+        Baudrate -> {antenna_serial.get_baudrate()} bauds
+        Timeout -> {antenna_serial.get_timeout()} sec
 
         Status Serial -> {"conectado" if antenna_serial.check_connected() else "desconectado"}
         Captura de dados -> {"ativada" if cli_record_data_flag else "desativada"}

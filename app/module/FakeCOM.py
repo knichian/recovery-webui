@@ -6,7 +6,7 @@ import logging
 class FakeCom(BaseCom):
     def __init__(self, logger: logging.Logger = logging.getLogger(__name__)):
         self.is_open = False
-        self.port: ( str | None ) = None
+        self.port: ( str | None ) = "fake-1"
         self.baudrate: int = 115200
         self.timeout: float = 1.0
         super().__init__(logger)
