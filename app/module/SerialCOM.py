@@ -1,42 +1,120 @@
-import serial
-import serial.tools.list_ports
-import sys
+# import serial
+# from datetime import time
 
-class base_com():
-    def __init__(self, port: str, baudrate: int = 115200, timeout: float = 0.5):
-        self.port = port
-        self.baudrate = baudrate
-        self.timeout = timeout
+import serial.tools.list_ports
+from serial import Serial, SerialException
+import sys
+import logging
+
+class BaseCom:
+    
+    def __init__(self, logger: logging.Logger = logging.getLogger(__name__)):
+        self.logger: logging.Logger = logger
+        self.serial = Serial(
+            # port = "/dev/ttyACM0",
+            port = None,
+            baudrate = 115200,
+            timeout = 1.0,
+            xonxoff = False,
+            rtscts = False,
+            write_timeout = 1.0,
+            dsrdtr = False,
+            inter_byte_timeout = None
+        )
+        self.logger.info("interface de comunicação criada")
+
+
+    # Ativa a conexão serial
+    def open(self):
         try:
-            self.serial = serial.Serial(
-                port=port,
-                baudrate=baudrate,
-                timeout=timeout,
-                xonxoff=False,
-                rtscts=False,
-                write_timeout=timeout,
-                dsrdtr=False,
-                inter_byte_timeout=None
-            )
-        except serial.SerialException as e:
-            self.serial = None
-            raise
+            self.serial.open()
+        except SerialException as err:
+            self.logger.error(f"erro em iniciar conexão serial \n-> {err}")
+        
+    # Desativa a conexão serial
+    def close(self):
+        try:
+            self.serial.close()
+        except SerialException as err:
+            self.logger.error(f"erro em finalizar conexão serial \n-> {err}")
+
+    # Confere a conexão serial esta ativa
+    def check_connected(self):
+        return self.serial.is_open
+
 
     # Envia um comando serial
     def send_command(self, command: bytes):
-        self.serial.write(command)
+        if self.check_connected():
+            try:
+                self.serial.write(command)
+            except SerialException as err:
+                self.logger.error(f"erro em enviar mensage para COM \n-> {err}")
 
     # Recebe uma string serial
     def read_response(self):
-        return self.serial.readline().decode('utf-8').strip()
+        if self.check_connected():
+            try:
+                return self.serial.readline().decode('utf-8').strip()
+            except SerialException as err:
+                self.logger.error(f"erro em ler resposta da COM \n-> {err}")
     
-    # Confere a conexão serial
-    def check_connection(self):
-        return self.serial.is_open
-    
-    # Encerra a conexão serial
-    def close(self):
-        self.serial.close()
+
+    def get_port_options(self) -> list:
+        if sys.platform.startswith('win'):  # For Windows
+            return [port.device for port in serial.tools.list_ports.comports()]
+        elif sys.platform.startswith(('linux', 'cygwin')): # For Linux and Cygwin
+            return [port.device for port in serial.tools.list_ports.comports() if '/dev/ttyACM' in port.device]
+        else:
+            return []
+
+    def get_baudrate_options(self) -> list:
+        return list(self.serial.BAUDRATES)
+
+    def get_timeout_options(self) -> list:
+        # timeout_options = [ option for option ] # WARNING: incomplete instruction! 
+        # return [] # WARNING: incomplete instruction! 
+        timeouts = [ 0, 0.25, 0.5, 1.0, 2.0, 2.5, 5.0, 7.5, 10 ] 
+        return timeouts
+
+
+    def get_port(self) -> ( str | None ):
+        return self.serial.port
+
+    def get_baudrate(self) -> int:
+        return self.serial.baudrate
+
+    def get_timeout(self) -> ( float | None ):
+        return self.serial.timeout
+
+
+    def set_port(self, port) -> None:
+        self.logger.info(f"definindo porta como {port}")
+        self.serial.port = port
+        self.logger.info(f"porta definida como {port}")
+        return None
+
+    def set_baudrate(self, baudrate) -> None:
+        self.logger.info(f"definindo baudrate como {baudrate}")
+        self.serial.baudrate = baudrate
+        self.logger.info(f"baudrate definido como {baudrate}")
+        return None
+
+    def set_timeout(self, timeout) -> None:
+        self.logger.info(f"definindo timeout como {timeout}")
+        self.serial.timeout = timeout
+        self.logger.info(f"timeout definido como {timeout}")
+        return None
+
+
+    def list_ports(self) -> list:
+        if sys.platform.startswith('win'):  # For Windows
+            return [port.device for port in serial.tools.list_ports.comports()]
+        elif sys.platform.startswith(('linux', 'cygwin')): # For Linux and Cygwin
+            return [port.device for port in serial.tools.list_ports.comports() if '/dev/ttyACM' in port.device]
+        else:
+            return []
+
 
 # Lista as portas seriais disponíveis
 def list_ports():
@@ -44,22 +122,32 @@ def list_ports():
         return [port.device for port in serial.tools.list_ports.comports()]
     elif sys.platform.startswith(('linux', 'cygwin')): # For Linux and Cygwin
         return [port.device for port in serial.tools.list_ports.comports() if '/dev/ttyACM' in port.device]
-    return []
+    else:
+        return []
 
 if __name__ == "__main__":
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+
     ports = list_ports()
     
-    print("Available COM ports:")
+    logger.info("Available COM ports:")
     for port in ports:
-        print(port)
+        logger.info(port)
     
     # Example usage
     if ports:
-        com = base_com('/dev/ttyACM0')
+        antenna_serial = BaseCom()
+        # antenna_serial.configure_serial("/dev/ttyACM")
+        # antenna_serial.configure_port("/dev/ttyACM")
+        # antenna_serial.configure_baudrate()  # broken! need to find the default value for this
+        # antenna_serial.configure_timeout() # broken! need to find the default value for this
+        # antenna_serial.configure_serial()
+        # TODO: fix this test part
         n = 0
         while n<1000:
             # com.send_command(b'A')
-            response = com.read_response()
+            response = antenna_serial.read_response()
             print(f"Response: {response}")
             n += 1
-        com.close()
+        antenna_serial.close()
