@@ -28,7 +28,13 @@
       {
         "name": "@styled/typescript-styled-plugin"
       }
-    ]
+    ],
+    /* Provides completion to vite alias */
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    }
   },
   "include": [
     "src"
