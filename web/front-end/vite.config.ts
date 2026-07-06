@@ -11,6 +11,18 @@ export default defineConfig({
         find: "@",
         replacement: path.resolve(__dirname, "src"),
       },
+      {
+        find: "@components",
+        replacement: path.resolve(__dirname, "src/components"),
+      },
+      {
+        find: "@fonts",
+        replacement: path.resolve(__dirname, "src/assets/fonts"),
+      },
+      {
+        find: "@images",
+        replacement: path.resolve(__dirname, "src/assets/images"),
+      },
     ],
   },
 });
