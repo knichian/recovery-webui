@@ -44,7 +44,7 @@ Opções:
     if option == "--debug":
         debug_mode = True
     # verificando se o modo simulação foi solicitado 
-    if option == "--simulation": # TODO: consider changing to "--synth"
+    if option == "--simulation":
         simulation_mode = True
     # verificando se usa CLI
     if option == "--cli":
@@ -342,7 +342,6 @@ def cli_configure_serial_select_baudrate() -> ( Callable | None ):
 
 
 def cli_configure_serial_select_timeout() -> ( Callable | None ):
-    # TODO: make a menu function to select the serial timeout
 
     menu_title = "Selecione o timeout:"
     timeouts = [ 0, 0.25, 0.5, 1.0, 2.0, 2.5, 5.0, 7.5, 10 ] 
@@ -522,8 +521,7 @@ def cli_main_menu() -> ( Callable | None ):
                     return cli_serial_on
         case 2:  # configura a conexão serial (porta, baudrate, timeout)
             return cli_configure_serial
-        # TODO: finish this function
-        case 3:  # exibe os dado sendo capturados no terminal (incompleta...)
+        case 3:  # exibe os dado sendo capturados no terminal
             if antenna_serial.check_connected():
                 return cli_monitor_serial_data
             else:
