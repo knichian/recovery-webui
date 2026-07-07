@@ -44,12 +44,18 @@ class BaseCom:
 
 
     # Envia um comando serial
-    def send_command(self, command: bytes):
+    def send_command(self, command: bytes) -> bool:
         if self.check_connected():
             try:
                 self.serial.write(command)
+                self.logger.info(f"comando enviado para COM \n-> {command}")
+                return True
+
             except SerialException as err:
                 self.logger.error(f"erro em enviar mensage para COM \n-> {err}")
+                return False
+        else:
+            return False
 
     # Recebe uma string serial
     def read_response(self):
