@@ -1,10 +1,36 @@
-function Logo({ logoSrc, alt: altText }: LogoProps) {
-  return <img src={logoSrc} alt={altText} />;
+import styled from "styled-components";
+import logoSrc from "@images/logo-serra.svg";
+import logoTextSrc from "@images/logo-serra-text.svg";
+
+function Logo() {
+  return (
+    <Wrapper>
+      <Img
+        src={logoSrc}
+        alt="Parte não-verbal da Logo da Equipe Serra Rocketry"
+      />
+      <Img
+        src={logoTextSrc}
+        alt="Parte verbal da Logo da Equipe Serra Rocketry"
+        $hideOnMobile
+      />
+    </Wrapper>
+  );
 }
 
-interface LogoProps {
-  logoSrc: string;
-  alt: string;
-}
+const Wrapper = styled.div`
+  display: flex;
+  gap: 10px;
+  align-self: stretch;
+`;
+
+const Img = styled.img<{ $hideOnMobile?: boolean }>`
+  height: 100%;
+  display: ${({ $hideOnMobile }) => ($hideOnMobile ? "None" : "")};
+
+  @media (min-width: 768px) {
+    display: block;
+  }
+`;
 
 export default Logo;

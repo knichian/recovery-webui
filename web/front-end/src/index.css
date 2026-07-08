@@ -1,3 +1,8 @@
+* {
+  /* Reset CSS */
+  box-sizing: border-box;
+}
+
 body {
   /* Reset CSS */
   margin: 0;

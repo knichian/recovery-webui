@@ -1,11 +1,10 @@
 import styled from "styled-components";
 import Logo from "@components/Header/Logo";
-import logoSrc from "@images/logo-serra-small.svg";
 
 function Header() {
   return (
     <Wrapper>
-      <Logo logoSrc={logoSrc} alt="Logo sem texto da Equipe Serra Rocketry" />
+      <Logo />
       <HeaderText>CONTROLE DE MISSÃO</HeaderText>
     </Wrapper>
   );
@@ -13,15 +12,29 @@ function Header() {
 
 const Wrapper = styled.header`
   display: flex;
-  padding: 15px 20px;
+  gap: 5px;
+  height: 60px;
+  padding-block: 10px;
+  padding-inline: 20px;
   justify-content: space-between;
+  align-items: center;
   background-color: var(--superficie-invertida, #fff);
+
+  @media (min-width: 768px) {
+    height: 80px;
+    padding-block: 15px;
+  }
 `;
 
-const HeaderText = styled.div`
+const HeaderText = styled.span`
   color: var(--texto-marca, #68228b);
   font-family: Iceland;
   font-size: 30px;
+  text-align: right;
+
+  @media (min-width: 768px) {
+    font-size: 40px;
+  }
 `;
 
 export default Header;
