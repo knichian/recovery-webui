@@ -3,10 +3,16 @@
   box-sizing: border-box;
 }
 
+html {
+  /* Makes sure that the site will span the entire viewport height */
+  height: 100dvh;
+  display: grid;
+}
+
 body {
   /* Reset CSS */
   margin: 0;
-  box-sizing: border-box;
+  height: 100%;
 }
 
 /* fonts */
@@ -15,4 +21,12 @@ body {
   font-style: normal;
   font-weight: 400;
   src: url(@fonts/Iceland.woff2) format("woff2");
+}
+
+#root {
+  /* Makes sure that the site will span the entire viewport height */
+  display: grid;
+  grid-template-rows: max-content;
+  grid-template-columns: 100%;
+  height: 100%;
 }
