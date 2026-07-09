@@ -1,6 +1,7 @@
 import styled from "styled-components";
-import logoSrc from "@images/logo-serra.svg";
+
 import logoTextSrc from "@images/logo-serra-text.svg";
+import logoSrc from "@images/logo-serra.svg";
 
 function Logo() {
   return (
