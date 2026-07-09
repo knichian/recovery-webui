@@ -13,7 +13,6 @@ function Header() {
 const Wrapper = styled.header`
   display: flex;
   gap: 5px;
-  height: 60px;
   padding-block: 10px;
   padding-inline: 20px;
   justify-content: space-between;
@@ -21,7 +20,7 @@ const Wrapper = styled.header`
   background-color: var(--superficie-invertida, #fff);
 
   @media (min-width: 768px) {
-    height: 80px;
+    min-height: 80px;
     padding-block: 15px;
   }
 `;

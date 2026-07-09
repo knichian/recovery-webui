@@ -21,7 +21,10 @@ function Logo() {
 const Wrapper = styled.div`
   display: flex;
   gap: 10px;
-  align-self: stretch;
+
+  @media (min-width: 768px) {
+    align-self: stretch;
+  }
 `;
 
 const Img = styled.img<{ $hideOnMobile?: boolean }>`
