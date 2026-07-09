@@ -1,5 +1,6 @@
 import styled from "styled-components";
 
+import Altitude from "./Altitude";
 import Cards from "./Cards";
 import Maps from "./Maps";
 
@@ -8,6 +9,7 @@ export default function Main() {
     <Wrapper>
       <Cards>
         <Maps />
+        <Altitude />
       </Cards>
     </Wrapper>
   );
