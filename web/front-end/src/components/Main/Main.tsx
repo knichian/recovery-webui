@@ -3,6 +3,7 @@ import styled from "styled-components";
 import Altitude from "./Altitude";
 import Cards from "./Cards";
 import Maps from "./Maps";
+import RenderSocket from "./RenderSocket";
 
 export default function Main() {
   return (
@@ -10,6 +11,7 @@ export default function Main() {
       <Cards>
         <Maps />
         <Altitude />
+        <RenderSocket />
       </Cards>
     </Wrapper>
   );
