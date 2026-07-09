@@ -21,15 +21,15 @@ const Wrapper = styled.header`
   background-color: var(--superficie-invertida, #fff);
 
   @media (min-width: 768px) {
-    min-height: 80px;
     padding-block: 15px;
+    min-height: 80px;
   }
 
   @media (min-width: 1280px) {
     position: relative;
     justify-content: center;
-    min-height: 80px;
     padding: 0;
+    min-height: 80px;
   }
 `;
 

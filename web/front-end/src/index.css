@@ -4,9 +4,9 @@
 }
 
 html {
+  display: grid;
   /* Makes sure that the site will span the entire viewport height */
   height: 100dvh;
-  display: grid;
 }
 
 body {
@@ -17,10 +17,10 @@ body {
 
 /* fonts */
 @font-face {
-  font-family: "Iceland";
   font-style: normal;
   font-weight: 400;
   src: url(@fonts/Iceland.woff2) format("woff2");
+  font-family: "Iceland";
 }
 
 #root {
