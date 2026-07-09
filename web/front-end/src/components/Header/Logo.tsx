@@ -25,6 +25,13 @@ const Wrapper = styled.div`
   @media (min-width: 768px) {
     align-self: stretch;
   }
+
+  @media (min-width: 1280px) {
+    position: absolute;
+    left: 20px;
+    top: 15px;
+    height: 50px;
+  }
 `;
 
 const Img = styled.img<{ $hideOnMobile?: boolean }>`

@@ -23,6 +23,13 @@ const Wrapper = styled.header`
     min-height: 80px;
     padding-block: 15px;
   }
+
+  @media (min-width: 1280px) {
+    position: relative;
+    justify-content: center;
+    min-height: 80px;
+    padding: 0;
+  }
 `;
 
 const HeaderText = styled.span`
@@ -33,6 +40,10 @@ const HeaderText = styled.span`
 
   @media (min-width: 768px) {
     font-size: 40px;
+  }
+
+  @media (min-width: 1280px) {
+    font-size: 48px;
   }
 `;
 
