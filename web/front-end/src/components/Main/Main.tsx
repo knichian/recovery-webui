@@ -1,13 +1,19 @@
 import styled from "styled-components";
 
+import Cards from "./Cards";
+import Maps from "./Maps";
+
 export default function Main() {
-  return <Wrapper></Wrapper>;
+  return (
+    <Wrapper>
+      <Cards>
+        <Maps />
+      </Cards>
+    </Wrapper>
+  );
 }
 
 const Wrapper = styled.main`
-  position: relative;
-  overflow: hidden;
-
   background:
     radial-gradient(
       62.14% 67.71% at 90.48% 74.59%,

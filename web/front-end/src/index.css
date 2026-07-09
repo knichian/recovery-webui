@@ -23,6 +23,13 @@ body {
   font-family: "Iceland";
 }
 
+@font-face {
+  font-style: normal;
+  font-weight: 400;
+  src: url(@fonts/Jersey10.woff2) format("woff2");
+  font-family: "Jersey10";
+}
+
 #root {
   /* Makes sure that the site will span the entire viewport height */
   display: grid;
