@@ -28,6 +28,11 @@ const Wrapper = styled.div`
     grid-row: 1 / span 2;
     grid-column: 6 / span 3;
   }
+
+  @media (min-width: 1280px) {
+    grid-row: 1 / span 2;
+    grid-column: 9 / span 4;
+  }
 `;
 
 const Data = styled.p`
