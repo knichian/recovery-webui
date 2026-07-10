@@ -23,6 +23,11 @@ const Wrapper = styled.div`
   grid-row: span 1;
   grid-column: span 4;
   justify-self: stretch;
+
+  @media (min-width: 768px) {
+    grid-row: 1 / span 2;
+    grid-column: 6 / span 3;
+  }
 `;
 
 const Data = styled.p`
