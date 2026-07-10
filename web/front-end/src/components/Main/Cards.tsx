@@ -28,4 +28,10 @@ const S_Cards = styled.div`
     padding: 40px;
     max-width: 660px;
   }
+
+  @media (min-width: 1280px) {
+    grid-template-rows: repeat(2, fit-content(100%));
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    max-width: 1000px;
+  }
 `;
