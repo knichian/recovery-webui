@@ -9,4 +9,9 @@ export default function Maps() {
 const Wrapper = styled(Card)`
   grid-row: 1 / span 1;
   grid-column: 1 / span 4;
+
+  @media (min-width: 768px) {
+    grid-row: 1 / span 1;
+    grid-column: 1 / span 5;
+  }
 `;

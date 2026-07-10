@@ -17,4 +17,15 @@ const S_Cards = styled.div`
   grid-template-rows: repeat(3, fit-content(100%));
   grid-template-columns: repeat(4, minmax(0, 1fr));
   grid-auto-flow: row;
+
+  @media (min-width: 768px) {
+    display: grid;
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    column-gap: 20px;
+    row-gap: 10px;
+    margin-inline: auto;
+    padding: 40px;
+    max-width: 660px;
+  }
 `;
