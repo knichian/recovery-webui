@@ -4,6 +4,7 @@
 import serial.tools.list_ports
 from serial import Serial, SerialException
 import sys
+import glob
 import logging
 
 class BaseCom:
@@ -68,12 +69,28 @@ class BaseCom:
     
 
     def get_port_options(self) -> list:
-        if sys.platform.startswith('win'):  # For Windows
-            return [port.device for port in serial.tools.list_ports.comports()]
-        elif sys.platform.startswith(('linux', 'cygwin')): # For Linux and Cygwin
-            return [port.device for port in serial.tools.list_ports.comports() if '/dev/ttyACM' in port.device]
+        if sys.platform.startswith(('linux', 'cygwin')): # Listando portas serial no Linux (ou Cygwin)
+            ports = glob.glob("/dev/tty[A-Za-z]*")
+        elif sys.platform.startswith('win'):  # Listando portas serial no Windows
+            ports = [ f"COM{i+1}" for i in range(256) ]
         else:
-            return []
+            error_message = "sistema operacional não suportado"
+            logger.critical(error_message)
+            raise EnvironmentError(error_message)
+
+        results = [ ]
+        for port in ports:
+            try:
+                com = Serial(port)
+                com.close()
+                results.append(port)
+            except (OSError, SerialException):
+                pass
+
+        if not results:
+            self.logger.warning("nenhuma porta serial encontrada")
+
+        return results
 
     def get_baudrate_options(self) -> list:
         return list(self.serial.BAUDRATES)
