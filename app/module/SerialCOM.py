@@ -35,11 +35,13 @@ class BaseCom:
             return False
         
     # Desativa a conexão serial
-    def close(self):
+    def close(self) -> bool:
         try:
             self.serial.close()
+            return True
         except SerialException as err:
             self.logger.error(f"erro em finalizar conexão serial \n-> {err}")
+            return False
 
     # Confere a conexão serial esta ativa
     def check_connected(self) -> bool:

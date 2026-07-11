@@ -29,20 +29,28 @@ cli_thread_loop_write_interval_s: float = 0.5 # define o intervalo de gravação
 
 
 # verificando os argumentos passados para cli
+debug_mode: bool = False
+cli_mode: bool = False
+api_demo_mode: bool = False
+simulation_mode: bool = False
+
 for option in sys.argv:
     # verificando se o modo debug foi solicitado 
     if option == "--help":
         cli_help_message = """
-Opções:
-    --help
-    --debug
-    --cli
-    --simulation
+        Opções:
+            --help
+            --debug
+            --cli
+            --api-demo
+            --simulation
         """
         print(cli_help_message)
         sys.exit(0)
     if option == "--debug":
         debug_mode = True
+    if option == "--api-demo":
+        api_demo_mode = True
     # verificando se o modo simulação foi solicitado 
     if option == "--simulation":
         simulation_mode = True
@@ -89,7 +97,7 @@ if debug_mode:
     main_logger.debug("modo debug ativado!")
 
 if simulation_mode:
-    main_logger.debug("modo simulação ativado!")
+    main_logger.info("modo simulação ativado!")
 
 # interface serial
 antenna_serial_configured: bool = False
@@ -146,41 +154,112 @@ def satellite_monitor():
 
 @app.get("/config")
 def serial_config():
-    return render_template("serial_config.html")
+    if api_demo_mode:
+        return render_template("example_serial_config.html")
+    else:
+        return render_template("serial_config.html")
 
 
 # configurar serial pela webui
-@app.get("/api/get_serial_ports")
-def get_serial_ports():
-    port_list = antenna_serial.get_port_options()
-    data = { "ports_avaliable": port_list }
-    return jsonify(data)
+@app.get("/api/config/get_port_options")
+def get_port_options():
+    return jsonify( { "ports_avaliable": antenna_serial.get_port_options() } )
+
+@app.get("/api/config/get_baudrate_options")
+def get_baudrate_options():
+    return jsonify( { "baudrates_avaliable": antenna_serial.get_baudrate_options() } )
+
+@app.get("/api/config/get_timeout_options")
+def get_timeout_options():
+    return jsonify( { "timeouts_avaliable": antenna_serial.get_timeout_options() } )
+
+@app.post("/api/config/set_port")
+def set_port() -> Response:
+    try:
+        content = request.json
+        new_port = content["port"]
+        antenna_serial.set_port(new_port)
+        success_message = f"\"port\" configurada para: {new_port}"
+        main_logger.info(success_message)
+        return Response(success_message, status.HTTP_202_ACCEPTED)
+    except Exception as err:
+        error_message = f"erro ao definir \"port\" pela REST-API => {err}"
+        main_logger.error(error_message)
+        return Response(error_message, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@app.post("/api/config/set_baudrate")
+def set_baudrate() -> Response:
+    try:
+        content = request.json
+        new_baudrate = content["baudrate"]
+        antenna_serial.set_baudrate( new_baudrate )
+        success_message = f"\"baudrate\" configurada para: {new_baudrate}"
+        main_logger.info(success_message)
+        return Response(success_message, status.HTTP_202_ACCEPTED)
+    except Exception as err:
+        error_message = f"erro ao definir baudrate pela REST-API => {err}"
+        main_logger.error(error_message)
+        return Response(error_message, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@app.post("/api/config/set_timeout")
+def set_timeout() -> Response:
+    try:
+        content = request.json
+        new_timeout = content["timeout"]
+        antenna_serial.set_timeout( new_timeout )
+        success_message = f"timeout configurada para: {new_timeout}"
+        main_logger.info(success_message)
+        return Response(success_message, status.HTTP_202_ACCEPTED)
+    except Exception as err:
+        error_message = f"erro ao definir timeout pela REST-API => {err}"
+        main_logger.error(error_message)
+        return Response(error_message, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@app.get("/api/get_baudrates")
-def get_baudrates():
-    baudrate_list = antenna_serial.serial.BAUDRATES
-    data = { "baudrate_list": baudrate_list }
-    return jsonify(data)
+@app.post("/api/config/open_serial_connection")
+def open_serial_connection():
+    if antenna_serial.open():
+        success_message = "conexão serial aberta"
+        main_logger.info(success_message)
+        return Response(success_message, status.HTTP_200_OK)
+    else:
+        error_message = "falha ao abrir conexão serial"
+        main_logger.error(error_message)
+        return Response(error_message, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@app.post("/api/config/close_serial_connection")
+def close_serial_connection():
+    if antenna_serial.close():
+        success_message = "conexão serial fechada"
+        main_logger.info(success_message)
+        return Response(success_message, status.HTTP_200_OK)
+    else:
+        error_message = "falha ao fechar conexão serial"
+        main_logger.error(error_message)
+        return Response(error_message, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@app.post("/api/config/check_serial_connection")
+def check_serial_connection():
+    return jsonify( { "serial_connection_status": antenna_serial.check_connected() } )
 
 
-@app.post("/api/set_serial_config")
-def set_serial_config():
-    json = request.get_json()
-    data = json["serial_configs"]
-
-    new_port = data["port"]
-    new_baurate = data["baudrate"]
-    new_timeout = data["timeout"]
-
-    antenna_serial.set_port(new_port)
-    main_logger.info(f"Porta serial configurada para: {new_port}")
-    antenna_serial.set_baudrate(new_baurate)
-    main_logger.info(f"Baudrate configurado para: {new_baurate}")
-    antenna_serial.set_timeout(new_timeout)
-    main_logger.info(f"Timeout configurado para: {new_timeout}")
-
-    return Response("", status.HTTP_201_CREATED)
+# @app.post("/api/set_serial_config")
+# def set_serial_config():
+#     json = request.get_json()
+#     data = json["serial_configs"]
+#
+#     new_port = data["port"]
+#     new_baurate = data["baudrate"]
+#     new_timeout = data["timeout"]
+#
+#     antenna_serial.set_port(new_port)
+#     main_logger.info(f"Porta serial configurada para: {new_port}")
+#     antenna_serial.set_baudrate(new_baurate)
+#     main_logger.info(f"Baudrate configurado para: {new_baurate}")
+#     antenna_serial.set_timeout(new_timeout)
+#     main_logger.info(f"Timeout configurado para: {new_timeout}")
+#
+#     return Response("", status.HTTP_201_CREATED)
 
 
 # conexão websocket
@@ -191,7 +270,6 @@ def connect():
     with thread_lock:
         if thread is None:
             thread = socketio.start_background_task(background_thread)
-
 
 @socketio.on("disconnect")
 def disconnect():
