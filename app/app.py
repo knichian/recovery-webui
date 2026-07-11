@@ -11,7 +11,7 @@ import sys
 import os
 import subprocess
 from typing import Callable # from enum import global_enum_repr
-from simple_term_menu import TerminalMenu, main
+from simple_term_menu import TerminalMenu
 from flask_api import status
 
 # variaves que definem modos de funcionamento
@@ -444,18 +444,14 @@ def cli_monitor_serial_data():
 
 
 def cli_serial_on() -> ( Callable | None ):
-    try:
-        # inicia a conexão serial
-        antenna_serial.open()
-
+    if antenna_serial.open(): # tenta iniciar a conexão serial
         # inicia a captura de dados
         global cli_thread 
         global cli_record_data_flag
         cli_thread = Thread( target=cli_record_serial_data_thread, daemon=True ) # cria a Thread de captura de dados
         cli_record_data_flag = True # ativa o loop dentro da Thread de captura de dados
         cli_thread.start() # inicia a Thread de captura de dados
-
-    except:
+    else:
         main_logger.error("Problema em abrir conexão com antena")
 
     return cli_main_menu

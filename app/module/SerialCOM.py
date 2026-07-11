@@ -25,11 +25,13 @@ class BaseCom:
 
 
     # Ativa a conexão serial
-    def open(self):
+    def open(self) -> bool:
         try:
             self.serial.open()
+            return True
         except SerialException as err:
             self.logger.error(f"erro em iniciar conexão serial \n-> {err}")
+            return False
         
     # Desativa a conexão serial
     def close(self):
@@ -39,9 +41,8 @@ class BaseCom:
             self.logger.error(f"erro em finalizar conexão serial \n-> {err}")
 
     # Confere a conexão serial esta ativa
-    def check_connected(self):
+    def check_connected(self) -> bool:
         return self.serial.is_open
-
 
     # Envia um comando serial
     def send_command(self, command: bytes) -> bool:
