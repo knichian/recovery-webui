@@ -1,73 +1,33 @@
-# React + TypeScript + Vite
+# Front End do recovery-ui
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Esse subprojeto conta com os arquivos de desenvolvimento do front end do projeto
+recovery-ui. As dependências do projeto estão listadas em `packages.json`, e
+no momento de escrita a versão de Node usada para o projeto é a v24.16.0.
 
-Currently, two official plugins are available:
+> [!ATTENTION]
+> Caso esse texto fique desatualizado, a versão de Node a ser utilizada para
+> desenvolvimento deve ser a presente no arquivo `flake.lock` de dependências do
+> nix.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+> [!TIP]
+> Se você for um usuário de nix, é possível fazer cache de seu shell de
+> desenvolvimento com `nix-direnv`. Apenas digite `direnv allow` e as
+> dependências nix estarão disponíveis ao navegar a esse diretório.
 
-## React Compiler
+## Contribua
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Para desenvolver o front-end é necessário ter `nix` instalado com o recurso
+experimental `flake` habilitado.
 
-## Expanding the ESLint configuration
+1. Como qualquer flake, insira `nix develop` em seu prompt para criar seu shell de desenvolvimento.
+2. Ao fim você deve ter Node instalado. Cheque com `node -v`.
+3. Finalmente, instale as dependências do Node com `npm install`.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Para abrir o servidor de desenvolvimento: `npm run dev`.
+Para abrir e export o servidor de desenvolvimento para sua LAN (bom para testar
+o layout em outros dispositivos): `npm run dev`.
 
-```js
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
+Para exportar o bundle estático que eventualmente será servido para o back end
+flask, use `npm run build`.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactDom from "eslint-plugin-react-dom";
-import reactX from "eslint-plugin-react-x";
-
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs["recommended-typescript"],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
-```
+E é isso c:
