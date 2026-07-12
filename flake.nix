@@ -17,6 +17,10 @@
           virtualenv
         ]))
       ];
+
+      shellHook = ''
+        source venv/bin/activate
+      '';
     };
   };
 }
