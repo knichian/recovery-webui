@@ -49,13 +49,13 @@ class FakeCom(BaseCom):
     def check_connected(self):
         return self.is_open
 
-    def open(self):
+    def open(self) -> bool:
         self.is_open = True
-        return None
+        return True
 
-    def close(self):
+    def close(self) -> bool:
         self.is_open = False
-        return None
+        return True
 
     def get_port_options(self):
         return [ "fake-1", "fake-2", "fake-3" ]

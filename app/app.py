@@ -24,7 +24,7 @@ cli_mode: bool = False
 cli_display_data_flag: bool = False
 cli_record_data_flag = False
 cli_thread = None # pyright: ignore
-cli_thread_lock = Lock()
+# cli_thread_lock = Lock()
 cli_thread_loop_write_interval_s: float = 0.5 # define o intervalo de gravação no CSV
 
 
@@ -475,7 +475,7 @@ def cli_record_serial_data_thread() -> None:
     global cli_display_data_flag # variavel de passagem controla a exibição das leituras no terminal (exibe caso esteja na tela de monitoramento)
     
     # logica principal da thread-secundaria
-    global cli_thread_lock
+    # global cli_thread_lock
     global cli_thread_loop_write_interval_s
 
     # definição do arquivo de saida para a coleta de dados
@@ -526,8 +526,8 @@ def cli_serial_on() -> ( Callable | None ):
         # inicia a captura de dados
         global cli_thread 
         global cli_record_data_flag
-        cli_thread = Thread( target=cli_record_serial_data_thread, daemon=True ) # cria a Thread de captura de dados
         cli_record_data_flag = True # ativa o loop dentro da Thread de captura de dados
+        cli_thread = Thread( target=cli_record_serial_data_thread, daemon=True ) # cria a Thread de captura de dados
         cli_thread.start() # inicia a Thread de captura de dados
     else:
         main_logger.error("Problema em abrir conexão com antena")
@@ -547,7 +547,7 @@ def cli_serial_off() -> ( Callable | None ):
 
     except:
 
-        main_logger.error("Problema em fechar conexão com antena")
+        main_logger.error("problema em fechar conexão com antena")
         sys.exit(1)
 
     return cli_main_menu
