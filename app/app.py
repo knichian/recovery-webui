@@ -13,6 +13,7 @@ import subprocess
 from typing import Callable # from enum import global_enum_repr
 from simple_term_menu import TerminalMenu
 from flask_api import status
+from pathlib import Path
 
 # variaves que definem modos de funcionamento
 debug_mode: bool = False
@@ -58,9 +59,8 @@ for option in sys.argv:
     if option == "--cli":
         cli_mode = True
 
-
 # configurando loggers
-main_logger = logging.getLogger("Cli_App") if cli_mode else logging.getLogger("WebApp")
+main_logger = logging.getLogger( "Cli_App" if cli_mode else "WebApp" )
 ws_logger = main_logger.getChild("WebSocket")
 antenna_logger = main_logger.getChild("Antenna")
 
@@ -70,10 +70,20 @@ else:
     main_logger.setLevel(logging.INFO)
 
 current_day_date = datetime.now().strftime("%Y_%m_%d")
-log_file_name = f"webapp_log_{current_day_date}"
+
+log_dir_name: str = "logs"
+log_file_name: str = f"webapp_log_{current_day_date}.log"
+
+workdir_path: Path = Path(os.path.dirname(os.path.abspath(__file__)))
+log_dir_path: Path = workdir_path / Path(log_dir_name)
+log_file_path: Path = log_dir_path / Path(log_file_name)
+
+# verificando se a pasta "logs" existe, e caso não, criando ela (logger ainda não foi inicializado neste ponto, então não é possivel registrar esse evento)
+if ( not os.path.exists(log_dir_path) ):
+    os.mkdir(log_dir_path)
 
 console_handler = logging.StreamHandler()
-file_handler = logging.FileHandler(f"logs/{log_file_name}.log", mode="a", encoding="utf-8")
+file_handler = logging.FileHandler(log_file_path, mode="a", encoding="utf-8")
 
 default_formater = logging.Formatter(
             "[%(asctime)s] %(levelname)-8s (%(name)s): %(message)s",
@@ -480,10 +490,23 @@ def cli_record_serial_data_thread() -> None:
 
     # definição do arquivo de saida para a coleta de dados
     current_time_stamp = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-    data_out_file_name = f"data_{current_time_stamp}" 
-    data_out_file_extention = "csv"
-    data_out_file_name_full = f"{data_out_file_name}.{data_out_file_extention}" 
-    data_out_file_path = f"data/{data_out_file_name_full}" 
+
+    data_out_dir_name: str = "data"
+    data_out_file_name: str = f"data_{current_time_stamp}.csv"
+
+    workdir_path: Path = Path(os.path.dirname(os.path.abspath(__file__)))
+    data_out_dir_path: Path = workdir_path / Path(data_out_dir_name)
+    data_out_file_path: Path = data_out_dir_path / Path(data_out_file_name)
+
+    # verificando se a pasta "data" existe, e caso não, criando ela
+    main_logger.info(f"verificando se pasta \"{data_out_dir_name}\" existe")
+    if ( os.path.exists(data_out_dir_path) ):
+        main_logger.info(f"pasta \"{data_out_dir_name}\" encontrada")
+    else:
+        main_logger.info(f"pasta \"{data_out_dir_name}\" não encontrada")
+        main_logger.info(f"criando pasta \"{data_out_dir_name}\"")
+        os.mkdir(data_out_dir_path)
+        main_logger.info(f"pasta \"{data_out_dir_name}\" criada")
 
     with open(data_out_file_path, "w") as data_out_file: # cria o arquivo CSV de para captura de dado desta sessão
         data_out_file.write( f"NOW,TEAM_ID,millis,count,altp,temp,umi,p,gp,gr,gy,ap,ar,ay,hora,data,alt,lat,lon,sat,pqd,rssi\n" )     # escreve o cabeçalho na primeira linha do CSV
