@@ -6,6 +6,14 @@ import { defineConfig } from "vite";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  server: {
+    proxy: {
+      "/socket.io": {
+        target: "http://localhost:5000",
+        ws: true,
+      },
+    },
+  },
   resolve: {
     alias: [
       {
@@ -23,6 +31,10 @@ export default defineConfig({
       {
         find: "@images",
         replacement: path.resolve(__dirname, "src/assets/images"),
+      },
+      {
+        find: "@websocket",
+        replacement: path.resolve(__dirname, "src/websocket/"),
       },
     ],
   },

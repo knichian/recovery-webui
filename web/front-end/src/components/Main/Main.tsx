@@ -1,3 +1,5 @@
+import socket from "@/websocket/websocket";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 
 import Altitude from "./Altitude";
@@ -5,13 +7,39 @@ import Cards from "./Cards";
 import Maps from "./Maps";
 import RenderSocket from "./RenderSocket";
 
+export interface webSocketData {
+  [key: string]: number | string;
+  latitude: number;
+  longitude: number;
+  altura: number;
+  satelites: number;
+  temperatura: number;
+  pressao: number;
+  rssi: number;
+  time: string;
+}
+
 export default function Main() {
+  const [data, setData] = useState<webSocketData>();
+
+  useEffect(() => {
+    function handleEvent(payload: webSocketData) {
+      setData(payload);
+    }
+
+    socket.on("updateSat", handleEvent);
+
+    return () => {
+      socket.off("updateSat", handleEvent);
+    };
+  }, []);
+
   return (
     <Wrapper>
       <Cards>
         <Maps />
         <Altitude />
-        <RenderSocket />
+        <RenderSocket data={data} />
       </Cards>
     </Wrapper>
   );

@@ -29,7 +29,8 @@
       "@/*": ["./src/*"],
       "@components/*": ["./src/components/*"],
       "@images/*": ["./src/assets/images/*"],
-      "@fonts/*": ["./src/assets/fonts/*"]
+      "@fonts/*": ["./src/assets/fonts/*"],
+      "@websocket/*": ["./src/websocket/*"]
     }
   },
   "include": ["src"]

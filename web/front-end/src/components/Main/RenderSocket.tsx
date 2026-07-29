@@ -1,15 +1,20 @@
 import styled from "styled-components";
 
-export default function RenderSocket() {
+import type { webSocketData } from "./Main";
+
+interface RenderSocketProps {
+  data?: webSocketData;
+}
+
+export default function RenderSocket({ data }: RenderSocketProps) {
   return (
     <Wrapper>
-      <Data>{"Dados"}</Data>
-      <Data>{"Dados"}</Data>
-      <Data>{"Dados"}</Data>
-      <Data>{"Dados"}</Data>
-      <Data>{"Dados"}</Data>
-      <Data>{"Dados"}</Data>
-      <Data>{"Dados"}</Data>
+      {data &&
+        Object.keys(data).map((key) => (
+          <Data>
+            {key}: {data[key]}
+          </Data>
+        ))}
     </Wrapper>
   );
 }
@@ -38,6 +43,6 @@ const Wrapper = styled.div`
 const Data = styled.p`
   color: #fff;
   font-family: Jersey10;
-  font-size: 46px;
+  font-size: 36px;
   margin: 0;
 `;

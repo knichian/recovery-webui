@@ -90,3 +90,6 @@ site/
 
 # Obsidian 
 .obsidian/
+
+# Data generated/received via launch antena
+data/
