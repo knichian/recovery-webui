@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import styled from "styled-components";
 
 import Altitude from "./Altitude";
-import Maps from "./Maps";
+import Maps from "./Maps/Maps";
 import RenderSocket from "./RenderSocket";
 
 export interface webSocketData {
@@ -37,7 +37,7 @@ export default function Main() {
   return (
     <Wrapper>
       <Cards>
-        <Maps />
+        <Maps missionCoords={data} />
         <Altitude />
         <RenderSocket data={data} />
       </Cards>
