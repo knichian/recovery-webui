@@ -1,6 +1,8 @@
 import Card from "@/shared/Cards/Card";
 import "leaflet/dist/leaflet.css";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+import { FullscreenControl } from "react-leaflet-fullscreen";
+import "react-leaflet-fullscreen/styles.css";
 import styled from "styled-components";
 
 import type { webSocketData } from "@components/Main/Main";
@@ -35,6 +37,7 @@ export default function Maps({ missionCoords }: MapsProps) {
           <Marker position={[missionCoords.latitude, missionCoords.longitude]}>
             <Popup>Posição da missão</Popup>
           </Marker>
+          <FullscreenControl />
         </MapContainer>
       )}
     </Wrapper>
