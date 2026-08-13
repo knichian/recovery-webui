@@ -26,6 +26,7 @@ const Wrapper = styled.div`
   grid-column: span 4;
   justify-self: stretch;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   aspect-ratio: 1/1;
@@ -37,10 +38,13 @@ const Wrapper = styled.div`
   box-shadow: 6px 4px 16px 2px rgba(0, 0, 0, 0.25);
 `;
 
-const CardTitle = styled.span`
+const CardTitle = styled.p`
+  margin: 0;
+  padding-block: 5px;
+  background-color: white;
+  width: 100%;
   color: var(--texto-texto-marca, #68228b);
   font-family: Jersey10;
   font-size: 32px;
-  position: absolute;
-  top: 10px;
+  text-align: center;
 `;

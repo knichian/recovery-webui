@@ -18,6 +18,7 @@ export default function Main() {
 }
 
 const Wrapper = styled.main`
+  flex: 1;
   background:
     radial-gradient(
       62.14% 67.71% at 90.48% 74.59%,
