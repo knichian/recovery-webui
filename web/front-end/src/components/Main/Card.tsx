@@ -16,23 +16,21 @@ export function Card({
 
 interface CardProps {
   title: string;
-  className: string;
+  className?: string;
 }
 
 const Wrapper = styled.div`
   width: 100%;
   max-height: 300px;
-  grid-row: span 1;
-  grid-column: span 4;
   justify-self: stretch;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
   aspect-ratio: 1/1;
   border-radius: 20px;
   background: var(--superficie-invertida, #fff);
   position: relative;
+  overflow: hidden;
 
   /* Card Shadow */
   box-shadow: 6px 4px 16px 2px rgba(0, 0, 0, 0.25);
