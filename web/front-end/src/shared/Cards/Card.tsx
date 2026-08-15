@@ -1,11 +1,7 @@
 import type { PropsWithChildren } from "react";
 import styled from "styled-components";
 
-export function Card({
-  title,
-  children,
-  className,
-}: PropsWithChildren<CardProps>) {
+function Card({ title, children, className }: PropsWithChildren<CardProps>) {
   return (
     <Wrapper className={className}>
       <CardTitle>{title}</CardTitle>
@@ -46,3 +42,5 @@ const CardTitle = styled.p`
   font-size: 32px;
   text-align: center;
 `;
+
+export default Card;

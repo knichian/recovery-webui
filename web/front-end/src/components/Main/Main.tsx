@@ -1,9 +1,9 @@
+import Cards from "@/shared/Cards/Cards";
 import socket from "@/websocket/websocket";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 
 import Altitude from "./Altitude";
-import Cards from "./Cards";
 import Maps from "./Maps";
 import RenderSocket from "./RenderSocket";
 

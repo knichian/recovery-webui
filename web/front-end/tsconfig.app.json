@@ -30,7 +30,8 @@
       "@components/*": ["./src/components/*"],
       "@images/*": ["./src/assets/images/*"],
       "@fonts/*": ["./src/assets/fonts/*"],
-      "@websocket/*": ["./src/websocket/*"]
+      "@websocket/*": ["./src/websocket/*"],
+      "@shared/*": ["./src/shared/"]
     }
   },
   "include": ["src"]

@@ -1,6 +1,5 @@
+import Card from "@/shared/Cards/Card";
 import styled from "styled-components";
-
-import { Card } from "./Card";
 
 export default function Maps() {
   return <Wrapper className={"mapsCard"} title="Coordenadas"></Wrapper>;

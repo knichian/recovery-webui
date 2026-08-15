@@ -1,6 +1,5 @@
+import Card from "@/shared/Cards/Card";
 import styled from "styled-components";
-
-import { Card } from "./Card";
 
 export default function Altitude() {
   return <Wrapper className="altitudeCard" title="Altitude"></Wrapper>;

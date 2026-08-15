@@ -36,6 +36,10 @@ export default defineConfig({
         find: "@websocket",
         replacement: path.resolve(__dirname, "src/websocket/"),
       },
+      {
+        find: "@shared",
+        replacement: path.resolve(__dirname, "src/shared/"),
+      },
     ],
   },
 });
