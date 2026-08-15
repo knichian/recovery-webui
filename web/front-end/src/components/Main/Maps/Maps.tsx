@@ -1,5 +1,6 @@
 import Card from "@/shared/Cards/Card";
 import "leaflet/dist/leaflet.css";
+import { useEffect, useState } from "react";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import { FullscreenControl } from "react-leaflet-fullscreen";
 import "react-leaflet-fullscreen/styles.css";
@@ -14,6 +15,23 @@ interface MapsProps {
 }
 
 export default function Maps({ missionCoords }: MapsProps) {
+  const [userCoords, setUserCoords] = useState<Coords>();
+
+  useEffect(() => {
+    const handlerID = navigator.geolocation.watchPosition(
+      ({ coords: userCoords }) => {
+        setUserCoords({
+          latitude: userCoords.latitude,
+          longitude: userCoords.longitude,
+        });
+      },
+    );
+
+    return () => {
+      navigator.geolocation.clearWatch(handlerID);
+    };
+  }, []);
+
   return (
     <Wrapper title="Coordenadas">
       {missionCoords && (
@@ -37,6 +55,11 @@ export default function Maps({ missionCoords }: MapsProps) {
           <Marker position={[missionCoords.latitude, missionCoords.longitude]}>
             <Popup>Posição da missão</Popup>
           </Marker>
+          {userCoords && (
+            <Marker position={[userCoords.latitude, userCoords.longitude]}>
+              <Popup>Você!</Popup>
+            </Marker>
+          )}
           <FullscreenControl />
         </MapContainer>
       )}
