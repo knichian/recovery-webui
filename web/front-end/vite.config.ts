@@ -37,6 +37,10 @@ export default defineConfig({
         replacement: path.resolve(__dirname, "src/websocket/"),
       },
       {
+        find: "@hooks",
+        replacement: path.resolve(__dirname, "src/customHooks/"),
+      },
+      {
         find: "@shared",
         replacement: path.resolve(__dirname, "src/shared/"),
       },
