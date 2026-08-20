@@ -192,7 +192,7 @@ def get_timeout_options():
 def set_port() -> Response:
     try:
         content = request.json
-        new_port = content["port"]
+        new_port = content["port"] # pyright: ignore
         antenna_serial.set_port(new_port)
         success_message = f"\"port\" configurada para: {new_port}"
         main_logger.info(success_message)
@@ -206,7 +206,7 @@ def set_port() -> Response:
 def set_baudrate() -> Response:
     try:
         content = request.json
-        new_baudrate = content["baudrate"]
+        new_baudrate = content["baudrate"] # pyright: ignore
         antenna_serial.set_baudrate( new_baudrate )
         success_message = f"\"baudrate\" configurada para: {new_baudrate}"
         main_logger.info(success_message)
@@ -220,7 +220,7 @@ def set_baudrate() -> Response:
 def set_timeout() -> Response:
     try:
         content = request.json
-        new_timeout = content["timeout"]
+        new_timeout = content["timeout"] # pyright: ignore
         antenna_serial.set_timeout( new_timeout )
         success_message = f"timeout configurada para: {new_timeout}"
         main_logger.info(success_message)
