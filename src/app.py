@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, Response, jsonify
 from datetime import datetime
 from flask_socketio import SocketIO
 from threading import Lock, Thread
-from module import BaseCom, FakeCom
+from modules import BaseCom, FakeCom
 # from datetime import datetime
 # import webbrowser
 import logging
@@ -119,7 +119,12 @@ thread_lock = Lock() # thread-lock para bloquear o acesso de outras treads as va
 
 
 # webapp
-app: Flask = Flask(__name__) # aplicação flask
+web_dir = os.path.join(os.path.dirname(__file__), "..", "web")
+app: Flask = Flask(
+        __name__,
+        template_folder=os.path.join(web_dir, "templates"),
+        static_folder=os.path.join(web_dir, "static")
+) # aplicação flask
 socketio: SocketIO = SocketIO(app) # websocket
 
 

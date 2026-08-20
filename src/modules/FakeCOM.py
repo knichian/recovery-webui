@@ -1,6 +1,6 @@
 # import time
 
-from module import BaseCom
+from modules import BaseCom
 import logging
 
 class FakeCom(BaseCom):
