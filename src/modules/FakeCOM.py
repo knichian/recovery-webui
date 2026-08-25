@@ -1,102 +1,116 @@
-# import time
+"""
+Módulo de comunicação serial simulada para testes sem hardware.
 
-from modules import BaseCom
+Fornece a classe FakeCom que emula a comunicação serial do receptor LoRa
+com dados de telemetria sintéticos no formato v2.0 (24 campos).
+"""
+
+try:
+    from .SerialCOM import BaseCom
+except ImportError:
+    # pyserial nao instalado — FakeCom funciona sem serial real
+    class BaseCom:  # type: ignore
+        """Stub para quando pyserial nao esta disponivel."""
+        def __init__(self, *args, **kwargs):
+            raise ImportError(
+                "pyserial nao instalado. Use --simulation ou pip install pyserial"
+            )
+
 import logging
+from typing import Optional
+
 
 class FakeCom(BaseCom):
-    def __init__(self, logger: logging.Logger = logging.getLogger(__name__)):
-        self.is_open = False
-        self.port: ( str | None ) = "fake-1"
-        self.baudrate: int = 115200
-        self.timeout: float = 1.0
-        self.fake_lines: list[str] = [
-                "#261,9339,0,-0.73,28.56,83.64,964.90,0.01,-0.03,0.01,0.34,-0.20,8.84,02:25:55,2025/11/05,440.30,-21.81603333,-49.23074617,7,nan,-49",
-                "#261,11589,4,-0.88,28.62,83.57,964.92,0.01,-0.03,0.02,0.31,-0.22,8.79,02:25:58,2025/11/05,443.20,-21.81602000,-49.23074250,8,nan,-50",
-                "#261,12098,5,-0.79,28.62,83.54,964.91,0.01,-0.03,0.01,0.37,-0.26,8.92,02:25:59,2025/11/05,443.20,-21.81602400,-49.23074100,8,nan,-49",
-                "#261,12603,6,-0.68,28.62,83.58,964.89,0.01,-0.02,0.01,0.29,-0.25,8.81,02:25:59,2025/11/05,444.50,-21.81602400,-49.23074100,8,nan,-50",
-                "#261,13114,7,-0.64,28.63,83.55,964.89,0.01,-0.02,0.01,0.37,-0.22,8.87,02:26:00,2025/11/05,444.50,-21.81603650,-49.23074317,8,nan,-49",
-                "#261,13629,8,-0.95,28.64,83.60,964.92,0.01,-0.03,0.02,0.35,-0.26,8.87,02:26:00,2025/11/05,445.40,-21.81603650,-49.23074317,9,nan,-49",
-                "#261,14143,9,-0.93,28.63,83.62,964.92,0.01,-0.02,0.02,0.36,-0.23,8.91,02:26:01,2025/11/05,445.40,-21.81604567,-49.23074850,9,nan,-49",
-                "#261,15309,11,-0.79,28.64,83.66,964.91,0.01,-0.03,0.02,0.34,-0.24,8.83,02:26:02,2025/11/05,446.10,-21.81604517,-49.23074950,7,nan,-49",
-                "#261,15824,12,-0.84,28.65,83.70,964.91,0.01,-0.03,0.01,0.28,-0.20,8.88,02:26:02,2025/11/05,446.10,-21.81604517,-49.23074950,7,nan,-49",
-                "#261,17363,15,-0.69,28.66,83.67,964.90,0.01,-0.03,0.01,0.30,-0.23,8.87,02:26:04,2025/11/05,445.40,-21.81604500,-49.23074567,6,nan,-50"
-                ]
-        self.fake_lines_index = 0
-        super().__init__(logger)
-        self.logger.debug("antena sintetica criada")
+    """
+    Emulador de comunicação serial para testes sem antena/receptor.
 
-    def send_command(self, command: bytes):
-        return super().send_command(command)
-    
-    def read_response(self):
-        # return super().read_response()
-        if self.is_open:
-            # return "NOW,TEAM_ID,millis,count,altp,temp,umi,p,gp,gr,gy,ap,ar,ay,hora,data,alt,lat,lon,sat,pqd,rssi\n"
-            # return "TEAM_ID,millis,count,altp,temp,umi,p,gp,gr,gy,ap,ar,ay,hora,data,alt,lat,lon,sat,pqd,rssi"
+    Gera dados sintéticos no formato v2.0 com TEAM_ID #213 (satélite),
+    simulando um pacote a cada chamada de read_response() em ciclo.
+    """
 
-            res: str = self.fake_lines[self.fake_lines_index]
-            self.fake_lines_index+=1
+    def __init__(self, logger_: logging.Logger = logging.getLogger(__name__)):
+        self._is_open = False
+        self._fake_port = "fake-1"
 
-            if self.fake_lines_index >= len(self.fake_lines): 
-                self.fake_lines_index = 0
+        # Dados sintéticos no formato v2.0 (24 campos)
+        # TEAM_ID,millis,count,altp,temp,umi,p,gx,gy,gz,ax,ay,az,
+        #   vz,maxAltitude,state,hora,data,alt,lat,lon,sat,parachute,rssi
+        self._fake_lines = [
+            # Subindo
+            "#213,1000,1,0.00,25.30,60.50,960.00,0.01,-0.02,0.01,0.10,0.20,-9.80,0.00,0.00,0,143000,22072026,478.00,-21.94305,-48.95409,10,0,-45",
+            "#213,1100,2,5.20,25.32,60.48,959.88,0.02,-0.03,0.02,0.11,0.21,-9.79,0.05,5.20,0,143001,22072026,483.20,-21.94304,-48.95408,10,0,-45",
+            "#213,1200,3,10.50,25.28,60.52,959.72,0.01,-0.01,0.01,0.09,0.19,-9.78,0.10,10.50,0,143002,22072026,488.50,-21.94303,-48.95407,10,0,-46",
+            "#213,1300,4,15.80,25.25,60.55,959.55,0.03,-0.04,0.02,0.12,0.22,-9.77,0.15,15.80,0,143003,22072026,493.80,-21.94302,-48.95406,10,0,-46",
+            "#213,1400,5,21.10,25.20,60.58,959.38,0.02,-0.02,0.01,0.10,0.20,-9.76,0.20,21.10,0,143004,22072026,499.10,-21.94301,-48.95405,10,0,-46",
+            "#213,1500,6,26.40,25.18,60.60,959.20,0.01,-0.03,0.02,0.11,0.21,-9.75,0.25,26.40,0,143005,22072026,504.40,-21.94300,-48.95404,10,0,-47",
+            "#213,1600,7,31.70,25.15,60.62,959.02,0.02,-0.01,0.01,0.09,0.19,-9.74,0.30,31.70,0,143006,22072026,509.70,-21.94299,-48.95403,10,0,-47",
+            "#213,1700,8,37.00,25.12,60.65,958.85,0.01,-0.02,0.02,0.10,0.20,-9.73,0.35,37.00,0,143007,22072026,515.00,-21.94298,-48.95402,10,0,-47",
+            "#213,1800,9,42.30,25.08,60.68,958.68,0.03,-0.03,0.01,0.11,0.21,-9.72,0.40,42.30,0,143008,22072026,520.30,-21.94297,-48.95401,10,0,-48",
+            "#213,1900,10,47.60,25.05,60.70,958.50,0.02,-0.02,0.02,0.10,0.20,-9.71,0.45,47.60,0,143009,22072026,525.60,-21.94296,-48.95400,10,0,-48",
+            # Apogeu (altp ~500m + 478m base = 978m)
+            "#213,5000,35,500.00,22.80,62.10,940.00,0.01,-0.01,0.01,0.08,0.18,-9.70,0.10,500.00,3,143030,22072026,978.00,-21.94280,-48.95385,9,0,-50",
+            # Descendo com paraquedas
+            "#213,8000,60,400.00,23.50,61.50,945.00,0.02,-0.02,0.01,0.09,0.19,-8.50,-5.00,500.00,5,143100,22072026,878.00,-21.94260,-48.95370,8,1,-52",
+            "#213,11000,85,300.00,24.10,61.00,950.00,0.01,-0.01,0.02,0.08,0.18,-7.80,-4.50,500.00,5,143130,22072026,778.00,-21.94240,-48.95355,8,1,-55",
+            "#213,14000,110,200.00,24.60,60.50,955.00,0.01,-0.02,0.01,0.07,0.17,-8.10,-3.80,500.00,6,143200,22072026,678.00,-21.94220,-48.95340,9,1,-58",
+            "#213,17000,135,100.00,25.00,60.00,960.00,0.02,-0.01,0.01,0.08,0.18,-8.30,-2.50,500.00,6,143230,22072026,578.00,-21.94200,-48.95325,9,1,-60",
+            "#213,20000,160,50.00,25.20,59.80,962.00,0.01,-0.01,0.01,0.07,0.17,-8.50,-1.00,500.00,7,143300,22072026,528.00,-21.94180,-48.95310,10,1,-62",
+            # Solo
+            "#213,23000,185,0.00,25.30,59.50,965.00,0.01,-0.02,0.01,0.06,0.16,-9.80,0.00,500.00,0,143330,22072026,478.00,-21.94160,-48.95295,10,0,-65",
+        ]
+        self._index = 0
 
-            return res
+        # Não chama super().__init__ — não precisamos de serial real
+        self.logger = logger_
+        self.logger.debug("antena sintética criada")
 
-        else:
-            self.logger.error("conexão serial fechada")
-            return None
-
-    def check_connected(self):
-        return self.is_open
+    # ── Controle de conexão ──────────────────────────────────────────────
 
     def open(self) -> bool:
-        self.is_open = True
+        self._is_open = True
+        self.logger.info("conexão serial simulada aberta")
         return True
 
-    def close(self) -> bool:
-        self.is_open = False
-        return True
+    def close(self):
+        self._is_open = False
+        self.logger.info("conexão serial simulada fechada")
 
-    def get_port_options(self):
-        return [ "fake-1", "fake-2", "fake-3" ]
-        # return super().get_port_options()
+    def check_connected(self) -> bool:
+        return self._is_open
 
-    def get_baudrate_options(self) -> list:
-        return super().get_baudrate_options()
+    # ── Leitura ──────────────────────────────────────────────────────────
 
-    def get_timeout_options(self) -> list:
-        return super().get_timeout_options()
+    def read_response(self) -> Optional[str]:
+        if not self._is_open:
+            self.logger.error("conexão serial simulada fechada")
+            return None
 
-    def get_port(self) -> (str | None):
-        return self.port
-        # return super().get_port()
+        line = self._fake_lines[self._index]
+        self._index = (self._index + 1) % len(self._fake_lines)
+        return line
+
+    # ── Getters / Setters ────────────────────────────────────────────────
+
+    def get_port(self) -> Optional[str]:
+        return self._fake_port
 
     def get_baudrate(self) -> int:
-        return self.baudrate
-        # return super().get_baudrate()
+        return 115200
 
-    def get_timeout(self) -> (float | None):
-        return self.timeout
-        # return super().get_timeout()
+    def get_timeout(self) -> float:
+        return 1.0
 
-    def set_port(self, port) -> None:
-        self.logger.info(f"definindo porta como {port}")
-        self.port = port
-        self.logger.info(f"porta definida como {port}")
-        return None
+    def set_port(self, port: str) -> None:
+        self.logger.info(f"definindo porta simulada como {port}")
+        self._fake_port = port
 
-    def set_baudrate(self, baudrate) -> None:
-        self.logger.info(f"definindo baudrate como {baudrate}")
-        self.baudrate = baudrate
-        self.logger.info(f"baudrate definido como {baudrate}")
-        return None
+    def set_baudrate(self, baudrate: int) -> None:
+        self.logger.info(f"definindo baudrate simulado como {baudrate}")
 
-    def set_timeout(self, timeout) -> None:
-        self.logger.info(f"definindo timeout como {timeout}")
-        self.timeout = timeout
-        self.logger.info(f"timeout definido como {timeout}")
-        return None
+    def set_timeout(self, timeout: float) -> None:
+        self.logger.info(f"definindo timeout simulado como {timeout}")
 
-    # TODO: adapt every method under this comment...
-    def list_ports(self) -> list:
-        return super().list_ports()
+    # ── Opções ───────────────────────────────────────────────────────────
+
+    def get_port_options(self) -> list:
+        return ["fake-1", "fake-2", "fake-3"]
