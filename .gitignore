@@ -97,5 +97,7 @@ site/
 .obsidian/
 
 # 
+logs
+data
 src/logs
 src/data
