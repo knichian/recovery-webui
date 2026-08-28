@@ -19,7 +19,10 @@
       ];
 
       shellHook = ''
-        source venv/bin/activate
+        if [ ! -d "src/.venv" ]; then
+          python -m venv "src/.venv"
+        fi
+        source src/.venv/bin/activate
         pip install -r requirements.txt
       '';
     };
