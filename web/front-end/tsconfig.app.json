@@ -31,8 +31,8 @@
       "@images/*": ["./src/assets/images/*"],
       "@fonts/*": ["./src/assets/fonts/*"],
       "@websocket/*": ["./src/websocket/*"],
-      "@hooks/*": ["./src/customHooks/"],
-      "@shared/*": ["./src/shared/"]
+      "@hooks/*": ["./src/customHooks/*"],
+      "@shared/*": ["./src/shared/*"]
     }
   },
   "include": ["src"]
