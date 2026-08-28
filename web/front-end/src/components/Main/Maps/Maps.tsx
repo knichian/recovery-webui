@@ -36,14 +36,27 @@ export default function Maps({ missionCoords }: MapsProps) {
     };
   }, []);
 
+  const maxBoundOffset = 0.6;
+
   return (
     <Wrapper title="Coordenadas">
       {missionCoords && (
         <MapContainer
           center={[missionCoords.latitude, missionCoords.longitude]}
-          zoom={13}
           scrollWheelZoom={true}
           zoomControl={false}
+          zoom={11}
+          minZoom={11}
+          maxBounds={[
+            [
+              Number(missionCoords.latitude) - Number(maxBoundOffset),
+              Number(missionCoords.longitude) - Number(maxBoundOffset),
+            ],
+            [
+              Number(missionCoords.latitude) + Number(maxBoundOffset),
+              Number(missionCoords.longitude) + Number(maxBoundOffset),
+            ],
+          ]}
         >
           <TileLayer
             attribution={
@@ -51,10 +64,7 @@ export default function Maps({ missionCoords }: MapsProps) {
               "USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, " +
               "and the GIS User Community"
             }
-            url={
-              "https://server.arcgisonline.com/ArcGIS/rest/services/" +
-              "World_Imagery/MapServer/tile/{z}/{y}/{x}"
-            }
+            url="/ArcGIS/{z}/{x}/{y}.png"
           />
           <Marker position={[missionCoords.latitude, missionCoords.longitude]}>
             <Popup>Posição da missão</Popup>
