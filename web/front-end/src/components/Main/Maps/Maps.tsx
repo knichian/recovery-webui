@@ -1,3 +1,4 @@
+import useDeviceCompass from "@/customHooks/useDeviceCompass";
 import Card from "@/shared/Cards/Card";
 import "leaflet/dist/leaflet.css";
 import { useEffect, useState } from "react";
@@ -7,6 +8,7 @@ import "react-leaflet-fullscreen/styles.css";
 import styled from "styled-components";
 
 import type { webSocketData } from "@components/Main/Main";
+import GyroscopeControl from "@components/Main/Maps/GyroscopeControls";
 
 type Coords = Pick<webSocketData, "latitude" | "longitude">;
 
@@ -16,6 +18,8 @@ interface MapsProps {
 
 export default function Maps({ missionCoords }: MapsProps) {
   const [userCoords, setUserCoords] = useState<Coords>();
+
+  const { compassRequestStatus, setCompassRequestStatus } = useDeviceCompass();
 
   useEffect(() => {
     const handlerID = navigator.geolocation.watchPosition(
@@ -61,6 +65,10 @@ export default function Maps({ missionCoords }: MapsProps) {
             </Marker>
           )}
           <FullscreenControl />
+          <GyroscopeControl
+            compassRequestStatus={compassRequestStatus}
+            setCompassRequestStatus={setCompassRequestStatus}
+          />
         </MapContainer>
       )}
     </Wrapper>

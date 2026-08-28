@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-type CompassRequestStatus = "idle" | "granted" | "revoked";
+export type CompassRequestStatus = "idle" | "granted" | "revoked";
 
 export default function useDeviceCompass() {
   const [compassRequestStatus, setCompassRequestStatus] =
