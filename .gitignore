@@ -1,7 +1,5 @@
 # Python
 __pycache__/
-app/__pycache__
-app/module/__pycache__
 *.py[cod]
 *$py.class
 *.so
@@ -29,7 +27,7 @@ venv/
 ENV/
 env/
 .venv
-app/.venv
+.direnv
 
 # IDEs
 .vscode/
@@ -45,9 +43,6 @@ web/static/logs/*.csv
 !web/static/logs/.gitkeep
 components/*/hardware/*.kicad_saved
 components/*/hardware/_autosave-*
-
-# Data
-app/data
 
 # Flask
 instance/
@@ -96,8 +91,8 @@ site/
 # Obsidian 
 .obsidian/
 
-# 
-logs
-data
-src/logs
-src/data
+# Data generated/received via launch antena
+logs/
+data/
+src/logs/
+src/data/
