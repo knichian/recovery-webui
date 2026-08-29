@@ -11,7 +11,7 @@ export default function RenderSocket({ data }: RenderSocketProps) {
     <Wrapper>
       {data &&
         Object.keys(data).map((key) => (
-          <Data>
+          <Data key={key}>
             {key}: {data[key]}
           </Data>
         ))}
