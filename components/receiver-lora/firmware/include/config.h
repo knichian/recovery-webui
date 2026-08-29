@@ -1,12 +1,12 @@
 #pragma once
 
-// ── LoRa RFM95W (SPI) ──────────────────────────
-#define LORA_SCK        4
-#define LORA_MOSI       3
-#define LORA_MISO       2
+// ── LoRa RFM95W (SPI) — ESP32 DevKit V1 (DOIT) ──
+#define LORA_SCK        18
+#define LORA_MOSI       23
+#define LORA_MISO       19
 #define LORA_CS         5
-#define LORA_RST        6
-#define LORA_IRQ        7
+#define LORA_RST        14
+#define LORA_IRQ        2
 
 // Frequência e sync word devem bater com o transmissor (satellite)
 #define LORA_FREQUENCY  915E6   // Hz  (915 MHz Americas/Brasil)
@@ -16,9 +16,9 @@
 #define LORA_CR         5       // Coding Rate (4/5)
 #define LORA_TX_POWER   17      // dBm
 
-// ── GPS (UART1) ─────────────────────────────────
-#define GPS_RX_PIN      20
-#define GPS_TX_PIN      21
+// ── GPS (UART1) — GPIO16=RX2, GPIO17=TX2 ────────
+#define GPS_RX_PIN      16
+#define GPS_TX_PIN      17
 #define GPS_BAUD        9600
 
 // ── Serial (USB) ────────────────────────────────
