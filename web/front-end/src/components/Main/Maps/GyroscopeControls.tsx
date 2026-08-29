@@ -18,7 +18,7 @@ function GyroscopeControl({
 }: GyroscopeControlProps) {
   useEffect(() => {
     if (!window.DeviceMotionEvent) {
-      setCompassRequestStatus("revoked");
+      setCompassRequestStatus("denied");
     } else if (!typeof window.DeviceMotionEvent.requestPermission) {
       setCompassRequestStatus("granted");
     }
@@ -27,11 +27,7 @@ function GyroscopeControl({
   function handleClick() {
     DeviceOrientationEvent.requestPermission().then(
       (orientationPermission: string) => {
-        if (orientationPermission === "granted") {
-          setCompassRequestStatus("granted");
-        } else {
-          setCompassRequestStatus("revoked");
-        }
+        setCompassRequestStatus(orientationPermission);
       },
     );
   }
