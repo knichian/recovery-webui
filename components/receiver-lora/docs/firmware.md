@@ -220,16 +220,25 @@ Exemplo de log na Serial:
 
 ## Pinagem
 
+Hardware: ESP32 DevKit V1 (DOIT). Módulo LoRa operando estritamente em 3.3 V
+(nunca ligar VCC no 5 V).
+
 | Pino | Funcao     | Componente       |
 |------|------------|------------------|
-| 2    | SPI MISO   | RFM95W MISO      |
-| 3    | SPI MOSI   | RFM95W MOSI      |
-| 4    | SPI SCK    | RFM95W SCK       |
-| 5    | SPI CS     | RFM95W chip sel  |
-| 6    | LoRa RST   | RFM95W reset     |
-| 7    | LoRa IRQ   | RFM95W DIO0      |
-| 20   | UART1 RX   | GPS NEO-8M TX    |
-| 21   | UART1 TX   | GPS NEO-8M RX    |
+| 18   | SPI SCK    | RFM95W SCK       |
+| 23   | SPI MOSI   | RFM95W MOSI      |
+| 19   | SPI MISO   | RFM95W MISO      |
+| 5    | SPI CS     | RFM95W NSS/CS    |
+| 14   | LoRa RST   | RFM95W RESET     |
+| 2    | LoRa IRQ   | RFM95W DIO0      |
+| 16   | UART2 RX   | GPS NEO-8M TX    |
+| 17   | UART2 TX   | GPS NEO-8M RX    |
+
+Alternativas aceitas pelo esquema de ligacao: LoRa RST pode ir no GPIO 26 e
+DIO0 no GPIO 15 (basta ajustar `LORA_RST`/`LORA_IRQ` em `config.h`).
+
+Nota: o GPIO 2 tambem participa do boot do ESP32; o RFM95W nao o aciona em
+reset, entao nao interfere no fluxo de upload/boot.
 
 ## Build e Upload
 
@@ -239,8 +248,8 @@ cd components/receiver-lora/firmware
 # Build
 pio run
 
-# Upload
-pio run -t upload --upload-port /dev/ttyACM0
+# Upload (DevKit V1 usa USB-UART, tipicamente /dev/ttyUSB0)
+pio run -t upload --upload-port /dev/ttyUSB0
 
 # Serial monitor
 pio device monitor -b 115200
