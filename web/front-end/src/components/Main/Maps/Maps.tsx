@@ -36,7 +36,7 @@ export default function Maps({ missionCoords }: MapsProps) {
     };
   }, []);
 
-  const maxBoundOffset = 0.6;
+  const maxBoundOffset = 0.2;
 
   return (
     <Wrapper title="Coordenadas">
@@ -45,16 +45,17 @@ export default function Maps({ missionCoords }: MapsProps) {
           center={[missionCoords.latitude, missionCoords.longitude]}
           scrollWheelZoom={true}
           zoomControl={false}
-          zoom={11}
-          minZoom={11}
+          zoom={13}
+          minZoom={12}
+          maxZoom={16}
           maxBounds={[
             [
-              Number(missionCoords.latitude) - Number(maxBoundOffset),
-              Number(missionCoords.longitude) - Number(maxBoundOffset),
+              Number(missionCoords.latitude) - maxBoundOffset,
+              Number(missionCoords.longitude) - maxBoundOffset,
             ],
             [
-              Number(missionCoords.latitude) + Number(maxBoundOffset),
-              Number(missionCoords.longitude) + Number(maxBoundOffset),
+              Number(missionCoords.latitude) + maxBoundOffset,
+              Number(missionCoords.longitude) + maxBoundOffset,
             ],
           ]}
         >
