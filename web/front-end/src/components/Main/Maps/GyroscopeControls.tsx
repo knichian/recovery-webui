@@ -12,24 +12,36 @@ interface GyroscopeControlProps {
   >;
 }
 
+interface CompassEvent {
+  prototype: DeviceOrientationEvent;
+  new (
+    type: string,
+    eventInitDict?: DeviceOrientationEventInit,
+  ): DeviceOrientationEvent;
+  requestPermission?(): Promise<"granted" | "denied">;
+}
+
 function GyroscopeControl({
   compassRequestStatus,
   setCompassRequestStatus,
 }: GyroscopeControlProps) {
+  const CompassEvent = window.DeviceOrientationEvent as
+    CompassEvent | undefined;
+
   useEffect(() => {
-    if (!window.DeviceMotionEvent) {
+    if (!CompassEvent) {
       setCompassRequestStatus("denied");
-    } else if (!typeof window.DeviceMotionEvent.requestPermission) {
+    } else if (!CompassEvent.requestPermission) {
       setCompassRequestStatus("granted");
     }
   }, []);
 
   function handleClick() {
-    DeviceOrientationEvent.requestPermission().then(
-      (orientationPermission: string) => {
-        setCompassRequestStatus(orientationPermission);
-      },
-    );
+    if (!CompassEvent?.requestPermission) return;
+
+    CompassEvent.requestPermission().then((orientationPermission) => {
+      setCompassRequestStatus(orientationPermission);
+    });
   }
 
   return (
@@ -39,8 +51,8 @@ function GyroscopeControl({
         onClick={() => handleClick()}
         $src={gyroscopeIconSrc}
         $isDisplayed={
-          window.DeviceMotionEvent &&
-          window.DeviceMotionEvent.requestPermission &&
+          CompassEvent &&
+          CompassEvent.requestPermission &&
           compassRequestStatus === "idle"
         }
       ></Button>
