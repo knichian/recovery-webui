@@ -17,9 +17,10 @@ function GyroscopeControl({
   setCompassRequestStatus,
 }: GyroscopeControlProps) {
   useEffect(() => {
-    if (typeof DeviceMotionEvent.requestPermission !== "function") {
+    if (!window.DeviceMotionEvent) {
+      setCompassRequestStatus("revoked");
+    } else if (!typeof window.DeviceMotionEvent.requestPermission) {
       setCompassRequestStatus("granted");
-      return;
     }
   }, []);
 
