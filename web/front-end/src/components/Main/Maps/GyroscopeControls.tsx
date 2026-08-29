@@ -35,24 +35,28 @@ function GyroscopeControl({
   return (
     <Control prepend position="topleft">
       <Button
-        $hide={compassRequestStatus !== "idle"}
         className="leaflet-bar"
         onClick={() => handleClick()}
         $src={gyroscopeIconSrc}
+        $isDisplayed={
+          window.DeviceMotionEvent &&
+          window.DeviceMotionEvent.requestPermission &&
+          compassRequestStatus === "idle"
+        }
       ></Button>
     </Control>
   );
 }
 
-const Button = styled.div<{ $hide?: boolean; $src?: string }>`
+const Button = styled.div<{ $isDisplayed?: boolean; $src?: string }>`
   color: "inherit";
   aspect-ratio: 1/1;
   width: 34px;
   justify-content: center;
   align-items: center;
   padding: 2px;
-  display: ${(props) => (props.$hide ? "none" : "grid")};
-  background-image: url("${(props) => props.$src}");
+  display: ${({ $isDisplayed }) => ($isDisplayed ? "grid" : "none")};
+  background-image: url("${({ $src }) => $src}");
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
