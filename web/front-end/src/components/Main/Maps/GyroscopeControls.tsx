@@ -60,6 +60,7 @@ const Button = styled.div<{ $hide?: boolean; $src?: string }>`
   background-position: center;
   background-size: contain;
   background-color: white;
+  cursor: pointer;
 `;
 
 export default GyroscopeControl;
