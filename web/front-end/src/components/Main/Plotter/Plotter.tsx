@@ -1,8 +1,8 @@
 import Card from "@/shared/Cards/Card";
 import styled from "styled-components";
 
-export default function Altitude() {
-  return <Wrapper className="altitudeCard" title="Altitude"></Wrapper>;
+export default function Plotter() {
+  return <Wrapper title="Plotter"></Wrapper>;
 }
 
 const Wrapper = styled(Card)`

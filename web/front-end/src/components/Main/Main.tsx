@@ -3,8 +3,8 @@ import socket from "@/websocket/websocket";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 
-import Altitude from "./Altitude";
 import Maps from "./Maps/Maps";
+import Plotter from "./Plotter/Plotter";
 import RenderSocket from "./RenderSocket";
 
 export interface webSocketData {
@@ -38,7 +38,7 @@ export default function Main() {
     <Wrapper>
       <Cards>
         <Maps missionCoords={data} />
-        <Altitude />
+        <Plotter />
         <RenderSocket data={data} />
       </Cards>
     </Wrapper>
