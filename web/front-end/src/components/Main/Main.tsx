@@ -20,11 +20,15 @@ export interface webSocketData {
 }
 
 export default function Main() {
-  const [data, setData] = useState<webSocketData>();
+  const [data, setData] = useState<webSocketData[]>();
 
   useEffect(() => {
     function handleEvent(payload: webSocketData) {
-      setData(payload);
+      if (data) {
+        setData([...data, payload]);
+      } else {
+        setData([payload]);
+      }
     }
 
     socket.on("updateSat", handleEvent);

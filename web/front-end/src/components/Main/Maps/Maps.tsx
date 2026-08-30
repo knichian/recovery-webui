@@ -16,7 +16,7 @@ type CoordsString = Pick<webSocketData, "latitude" | "longitude">;
 type Coords = Record<keyof CoordsString, number>;
 
 interface MapsProps {
-  missionCoords?: CoordsString;
+  missionCoords?: CoordsString[];
 }
 
 export default function Maps({ missionCoords }: MapsProps) {
@@ -48,8 +48,9 @@ export default function Maps({ missionCoords }: MapsProps) {
 
   let cardContent: React.JSX.Element | undefined;
   if (missionCoords) {
-    const missionLat = Number(missionCoords.latitude);
-    const missionLong = Number(missionCoords.longitude);
+    const lastCoords = missionCoords[missionCoords.length - 1];
+    const missionLat = Number(lastCoords.latitude);
+    const missionLong = Number(lastCoords.longitude);
 
     cardContent = (
       <MapContainer

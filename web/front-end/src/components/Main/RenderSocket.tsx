@@ -3,20 +3,21 @@ import styled from "styled-components";
 import type { webSocketData } from "@components/Main/Main";
 
 interface RenderSocketProps {
-  data?: webSocketData;
+  data?: webSocketData[];
 }
 
 export default function RenderSocket({ data }: RenderSocketProps) {
-  return (
-    <Wrapper>
-      {data &&
-        Object.keys(data).map((key) => (
-          <Data key={key}>
-            {key}: {data[key]}
-          </Data>
-        ))}
-    </Wrapper>
-  );
+  let cardContent: React.JSX.Element[] | undefined;
+  if (data) {
+    const lastData = data[data.length - 1];
+    cardContent = Object.keys(lastData).map((key) => (
+      <Data key={key}>
+        {key}: {lastData[key]}
+      </Data>
+    ));
+  }
+
+  return <Wrapper>{cardContent}</Wrapper>;
 }
 
 const Wrapper = styled.div`
