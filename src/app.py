@@ -24,7 +24,7 @@ import subprocess
 import sys
 import time
 
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, send_from_directory
 from flask_socketio import SocketIO
 from simple_term_menu import TerminalMenu
 
@@ -142,7 +142,11 @@ if not cli_mode:
 
     @app.route("/")
     def index():
-        return render_template("index.html")
+        return send_from_directory(app.static_folder, "index.html")
+
+    @app.route("/<path:path>")
+    def dynamic_rout(path):
+        return send_from_directory(app.static_folder, path)
 
 
     @app.route("/satellite")
