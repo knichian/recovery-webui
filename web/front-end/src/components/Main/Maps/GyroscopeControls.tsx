@@ -12,7 +12,7 @@ interface GyroscopeControlProps {
   >;
 }
 
-interface CompassEvent {
+interface DeviceOrientationEventConstructor {
   prototype: DeviceOrientationEvent;
   new (
     type: string,
@@ -26,7 +26,7 @@ function GyroscopeControl({
   setCompassRequestStatus,
 }: GyroscopeControlProps) {
   const CompassEvent = window.DeviceOrientationEvent as
-    CompassEvent | undefined;
+    DeviceOrientationEventConstructor | undefined;
 
   useEffect(() => {
     if (!CompassEvent) {
