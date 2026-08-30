@@ -8,14 +8,14 @@ import Plotter from "./Plotter/Plotter";
 import RenderSocket from "./RenderSocket";
 
 export interface webSocketData {
-  [key: string]: number | string;
-  latitude: number;
-  longitude: number;
-  altura: number;
-  satelites: number;
-  temperatura: number;
-  pressao: number;
-  rssi: number;
+  [key: string]: string;
+  latitude: string;
+  longitude: string;
+  altura: string;
+  satelites: string;
+  temperatura: string;
+  pressao: string;
+  rssi: string;
   time: string;
 }
 

@@ -12,10 +12,11 @@ import type { webSocketData } from "@components/Main/Main";
 import GyroscopeControl from "@components/Main/Maps/GyroscopeControls";
 import customIconSrc from "@components/Main/Maps/marker.svg";
 
-type Coords = Pick<webSocketData, "latitude" | "longitude">;
+type CoordsString = Pick<webSocketData, "latitude" | "longitude">;
+type Coords = Record<keyof CoordsString, number>;
 
 interface MapsProps {
-  missionCoords?: Coords;
+  missionCoords?: CoordsString;
 }
 
 export default function Maps({ missionCoords }: MapsProps) {
@@ -38,65 +39,60 @@ export default function Maps({ missionCoords }: MapsProps) {
     };
   }, []);
 
+  const maxBoundOffset = 0.2;
   const customIcon = new L.Icon({
     iconUrl: customIconSrc,
     iconSize: new L.Point(40, 40),
     iconAnchor: new L.Point(20, 40),
   });
-  const maxBoundOffset = 0.2;
 
-  return (
-    <Wrapper title="Coordenadas">
-      {missionCoords && (
-        <MapContainer
-          center={[missionCoords.latitude, missionCoords.longitude]}
-          scrollWheelZoom={true}
-          zoomControl={false}
-          zoom={13}
-          minZoom={12}
-          maxZoom={16}
-          maxBounds={[
-            [
-              Number(missionCoords.latitude) - maxBoundOffset,
-              Number(missionCoords.longitude) - maxBoundOffset,
-            ],
-            [
-              Number(missionCoords.latitude) + maxBoundOffset,
-              Number(missionCoords.longitude) + maxBoundOffset,
-            ],
-          ]}
-        >
-          <TileLayer
-            attribution={
-              "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, " +
-              "USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, " +
-              "and the GIS User Community"
-            }
-            url="/ArcGIS/{z}/{x}/{y}.png"
-          />
+  let cardContent: React.JSX.Element | undefined;
+  if (missionCoords) {
+    const missionLat = Number(missionCoords.latitude);
+    const missionLong = Number(missionCoords.longitude);
+
+    cardContent = (
+      <MapContainer
+        center={[missionLat, missionLong]}
+        scrollWheelZoom={true}
+        zoomControl={false}
+        zoom={13}
+        minZoom={12}
+        maxZoom={16}
+        maxBounds={[
+          [missionLat - maxBoundOffset, missionLong - maxBoundOffset],
+          [missionLat + maxBoundOffset, missionLong + maxBoundOffset],
+        ]}
+      >
+        <TileLayer
+          attribution={
+            "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, " +
+            "USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, " +
+            "and the GIS User Community"
+          }
+          url="/ArcGIS/{z}/{x}/{y}.png"
+        />
+        <Marker position={[missionLat, missionLong]} icon={customIcon}>
+          <Popup>Posição da missão</Popup>
+        </Marker>
+        {userCoords && (
           <Marker
-            position={[missionCoords.latitude, missionCoords.longitude]}
+            position={[userCoords.latitude, userCoords.longitude]}
             icon={customIcon}
           >
-            <Popup>Posição da missão</Popup>
+            <Popup>Você!</Popup>
           </Marker>
-          {userCoords && (
-            <Marker
-              position={[userCoords.latitude, userCoords.longitude]}
-              icon={customIcon}
-            >
-              <Popup>Você!</Popup>
-            </Marker>
-          )}
-          <FullscreenControl />
-          <GyroscopeControl
-            compassRequestStatus={compassRequestStatus}
-            setCompassRequestStatus={setCompassRequestStatus}
-          />
-        </MapContainer>
-      )}
-    </Wrapper>
-  );
+        )}
+        <FullscreenControl />
+        <GyroscopeControl
+          compassRequestStatus={compassRequestStatus}
+          setCompassRequestStatus={setCompassRequestStatus}
+        />
+      </MapContainer>
+    );
+  }
+
+  return <Wrapper title="Coordenadas">{cardContent}</Wrapper>;
 }
 
 const Wrapper = styled(Card)`
