@@ -1,5 +1,6 @@
 import useDeviceCompass from "@/customHooks/useDeviceCompass";
 import Card from "@/shared/Cards/Card";
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useEffect, useState } from "react";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
@@ -9,6 +10,7 @@ import styled from "styled-components";
 
 import type { webSocketData } from "@components/Main/Main";
 import GyroscopeControl from "@components/Main/Maps/GyroscopeControls";
+import customIconSrc from "@components/Main/Maps/marker.svg";
 
 type Coords = Pick<webSocketData, "latitude" | "longitude">;
 
@@ -36,6 +38,11 @@ export default function Maps({ missionCoords }: MapsProps) {
     };
   }, []);
 
+  const customIcon = new L.Icon({
+    iconUrl: customIconSrc,
+    iconSize: new L.Point(40, 40),
+    iconAnchor: new L.Point(20, 40),
+  });
   const maxBoundOffset = 0.2;
 
   return (
@@ -67,11 +74,17 @@ export default function Maps({ missionCoords }: MapsProps) {
             }
             url="/ArcGIS/{z}/{x}/{y}.png"
           />
-          <Marker position={[missionCoords.latitude, missionCoords.longitude]}>
+          <Marker
+            position={[missionCoords.latitude, missionCoords.longitude]}
+            icon={customIcon}
+          >
             <Popup>Posição da missão</Popup>
           </Marker>
           {userCoords && (
-            <Marker position={[userCoords.latitude, userCoords.longitude]}>
+            <Marker
+              position={[userCoords.latitude, userCoords.longitude]}
+              icon={customIcon}
+            >
               <Popup>Você!</Popup>
             </Marker>
           )}
