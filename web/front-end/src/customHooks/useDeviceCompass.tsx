@@ -2,6 +2,10 @@ import { useEffect, useState } from "react";
 
 export type CompassRequestStatus = "idle" | "granted" | "denied";
 
+interface CompassEvent extends DeviceOrientationEvent {
+  webkitCompassHeading?: number;
+}
+
 export default function useDeviceCompass() {
   const [compassRequestStatus, setCompassRequestStatus] =
     useState<CompassRequestStatus>("idle");
@@ -10,7 +14,7 @@ export default function useDeviceCompass() {
   useEffect(() => {
     if (compassRequestStatus !== "granted") return;
 
-    function handleOrientation(e: DeviceOrientationEvent) {
+    function handleOrientation(e: CompassEvent) {
       if (!e.webkitCompassHeading) return;
 
       const userCompass = e.webkitCompassHeading.toLocaleString("pt-BR", {
