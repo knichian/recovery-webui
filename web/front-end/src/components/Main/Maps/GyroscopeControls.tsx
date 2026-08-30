@@ -12,54 +12,68 @@ interface GyroscopeControlProps {
   >;
 }
 
+interface CompassEvent {
+  prototype: DeviceOrientationEvent;
+  new (
+    type: string,
+    eventInitDict?: DeviceOrientationEventInit,
+  ): DeviceOrientationEvent;
+  requestPermission?(): Promise<"granted" | "denied">;
+}
+
 function GyroscopeControl({
   compassRequestStatus,
   setCompassRequestStatus,
 }: GyroscopeControlProps) {
+  const CompassEvent = window.DeviceOrientationEvent as
+    CompassEvent | undefined;
+
   useEffect(() => {
-    if (typeof DeviceMotionEvent.requestPermission !== "function") {
+    if (!CompassEvent) {
+      setCompassRequestStatus("denied");
+    } else if (!CompassEvent.requestPermission) {
       setCompassRequestStatus("granted");
-      return;
     }
   }, []);
 
   function handleClick() {
-    DeviceOrientationEvent.requestPermission().then(
-      (orientationPermission: string) => {
-        if (orientationPermission === "granted") {
-          setCompassRequestStatus("granted");
-        } else {
-          setCompassRequestStatus("revoked");
-        }
-      },
-    );
+    if (!CompassEvent?.requestPermission) return;
+
+    CompassEvent.requestPermission().then((orientationPermission) => {
+      setCompassRequestStatus(orientationPermission);
+    });
   }
 
   return (
     <Control prepend position="topleft">
       <Button
-        $hide={compassRequestStatus !== "idle"}
         className="leaflet-bar"
         onClick={() => handleClick()}
         $src={gyroscopeIconSrc}
+        $isDisplayed={
+          CompassEvent &&
+          CompassEvent.requestPermission &&
+          compassRequestStatus === "idle"
+        }
       ></Button>
     </Control>
   );
 }
 
-const Button = styled.div<{ $hide?: boolean; $src?: string }>`
+const Button = styled.div<{ $isDisplayed?: boolean; $src?: string }>`
   color: "inherit";
   aspect-ratio: 1/1;
   width: 34px;
   justify-content: center;
   align-items: center;
   padding: 2px;
-  display: ${(props) => (props.$hide ? "none" : "grid")};
-  background-image: url("${(props) => props.$src}");
+  display: ${({ $isDisplayed }) => ($isDisplayed ? "grid" : "none")};
+  background-image: url("${({ $src }) => $src}");
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
   background-color: white;
+  cursor: pointer;
 `;
 
 export default GyroscopeControl;
