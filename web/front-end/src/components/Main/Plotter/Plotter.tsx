@@ -1,4 +1,5 @@
 import Card from "@/shared/Cards/Card";
+import { normal } from "color-blend";
 import { useEffect, useState } from "react";
 import {
   CartesianGrid,
@@ -21,13 +22,18 @@ interface PlotterProps {
   data: WebSocketData[];
 }
 
-export interface GraphsFilter {
-  [key: string]: boolean;
+export interface CurveProperties {
+  [key: string]: {
+    isActive: boolean;
+    color: string;
+  };
 }
 
 export default function Plotter({ data }: PlotterProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [graphsFilter, setGraphsFilter] = useState<GraphsFilter>({});
+  const [curveProperties, setCurveProperties] = useState<CurveProperties>({});
+
+  const curvePropertiesLength = Object.keys(curveProperties).length;
 
   let dataKeys: string[] = [];
   if (data.length > 0) {
@@ -35,10 +41,30 @@ export default function Plotter({ data }: PlotterProps) {
   }
 
   useEffect(() => {
-    if (Object.keys(graphsFilter).length > 0) {
+    if (curvePropertiesLength > 0) {
       return;
     }
-    setGraphsFilter(Object.fromEntries(dataKeys.map((key) => [key, true])));
+
+    const orange = { r: 249, g: 166, b: 0, a: 1 };
+    const purple = { r: 104, g: 34, b: 139, a: 1 };
+    const blendingScaleFactor = 1 / dataKeys.length;
+    let currentBlendingScale = 0;
+
+    setCurveProperties(
+      dataKeys.reduce((prev, cur) => {
+        purple.a = currentBlendingScale;
+        orange.a = 1 - currentBlendingScale;
+        currentBlendingScale += blendingScaleFactor;
+        const nc = normal(orange, purple);
+        return {
+          ...prev,
+          [cur]: {
+            isActive: true,
+            color: `rgba(${nc.r}, ${nc.g}, ${nc.b}, ${nc.a})`,
+          },
+        };
+      }, {}),
+    );
   }, [data]);
 
   const Typed = createHorizontalChart<WebSocketData, string, number>()({
@@ -58,7 +84,10 @@ export default function Plotter({ data }: PlotterProps) {
         $isFullscreen={isFullscreen}
         onClick={handleButtonClick}
       />
-      <GraphsFilterMenu filter={graphsFilter} setFilter={setGraphsFilter} />
+      <GraphsFilterMenu
+        filter={curveProperties}
+        setFilter={setCurveProperties}
+      />
       <Typed.LineChart
         style={{
           width: isFullscreen ? "90%" : "70%",
@@ -73,14 +102,20 @@ export default function Plotter({ data }: PlotterProps) {
         <Typed.XAxis dataKey="time" />
         <Typed.YAxis />
         <Typed.YAxis />
-        {dataKeys
-          .filter((key) => graphsFilter[key])
-          .map((key) => {
-            if (key === "time") return;
-            return (
-              <Typed.Line key={key} isAnimationActive={false} dataKey={key} />
-            );
-          })}
+        {curvePropertiesLength > 0 &&
+          dataKeys
+            .filter((key) => curveProperties[key].isActive)
+            .map((key) => {
+              if (key === "time") return;
+              return (
+                <Typed.Line
+                  key={key}
+                  isAnimationActive={false}
+                  dataKey={key}
+                  stroke={curveProperties[key].color}
+                />
+              );
+            })}
         <Legend />
         <Tooltip isAnimationActive={false} />
       </Typed.LineChart>

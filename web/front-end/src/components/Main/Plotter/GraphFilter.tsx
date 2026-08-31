@@ -1,11 +1,11 @@
 import styled from "styled-components";
 
-import type { GraphsFilter } from "./Plotter";
+import type { CurveProperties } from "./Plotter";
 import bulletIconSrc from "./rocket.svg";
 
 interface GraphsFilterMenuProps {
-  filter: GraphsFilter;
-  setFilter: React.Dispatch<React.SetStateAction<GraphsFilter>>;
+  filter: CurveProperties;
+  setFilter: React.Dispatch<React.SetStateAction<CurveProperties>>;
 }
 
 export default function GraphsFilterMenu({
@@ -16,7 +16,10 @@ export default function GraphsFilterMenu({
     setFilter((prev) => {
       return {
         ...prev,
-        [key]: !prev[key],
+        [key]: {
+          ...prev[key],
+          isActive: !prev[key].isActive,
+        },
       };
     });
   }
@@ -31,7 +34,7 @@ export default function GraphsFilterMenu({
               <span>{key}</span>
               <input
                 type="checkbox"
-                checked={value}
+                checked={value.isActive}
                 onChange={() => handleChange(key)}
               />
             </li>
