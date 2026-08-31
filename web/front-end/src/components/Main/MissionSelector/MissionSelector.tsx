@@ -17,8 +17,12 @@ export default function MissionSelector({
 
   return (
     <Wrapper>
-      <label for="pet-select">Missões:</label>
-      <Select value={selectedMission} onChange={(e) => handleChange(e)}>
+      <label htmlFor="mission-select">Missões:</label>
+      <Select
+        value={selectedMission}
+        name="mission-select"
+        onChange={(e) => handleChange(e)}
+      >
         <option value="">Selecione uma missão:</option>
         <option value="#11">#11 Foguete principal</option>
         <option value="#51">#51 Foguete Secundário</option>
