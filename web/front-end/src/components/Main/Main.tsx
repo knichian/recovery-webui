@@ -23,7 +23,6 @@ const DATA_BUFFER_SIZE = 100;
 
 export default function Main() {
   const [data, setData] = useState<WebSocketData[]>([]);
-  console.log(data.length);
 
   useEffect(() => {
     function handleEvent(payload: WebSocketData) {
