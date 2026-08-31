@@ -1,10 +1,24 @@
 import styled from "styled-components";
 
-export default function MissionSelector() {
+import type { SelectedMission } from "@components/Main/Main";
+
+interface MissionSelectorProps {
+  selectedMission: SelectedMission;
+  setSelectedMission: React.SetStateAction<SelectedMission>;
+}
+
+export default function MissionSelector({
+  selectedMission,
+  setSelectedMission,
+}: MissionSelectorProps) {
+  function handleChange(e) {
+    setSelectedMission(e.target.value);
+  }
+
   return (
     <Wrapper>
       <label for="pet-select">Missões:</label>
-      <Select>
+      <Select value={selectedMission} onChange={(e) => handleChange(e)}>
         <option value="">Selecione uma missão:</option>
         <option value="#11">#11 Foguete principal</option>
         <option value="#51">#51 Foguete Secundário</option>
