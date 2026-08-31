@@ -1,9 +1,14 @@
 import type { PropsWithChildren } from "react";
 import styled from "styled-components";
 
-function Card({ title, children, className }: PropsWithChildren<CardProps>) {
+function Card({
+  title,
+  children,
+  className,
+  isFullscreen = false,
+}: PropsWithChildren<CardProps>) {
   return (
-    <Wrapper className={className}>
+    <Wrapper className={className} $isFullscreen={isFullscreen}>
       <CardTitle>{title}</CardTitle>
       {children}
     </Wrapper>
@@ -12,10 +17,28 @@ function Card({ title, children, className }: PropsWithChildren<CardProps>) {
 
 interface CardProps {
   title: string;
+  isFullscreen?: boolean;
   className?: string;
 }
 
-const Wrapper = styled.div`
+function handleIsFullscreen(isFullscreen: boolean) {
+  if (isFullscreen) {
+    return `
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-height: unset;
+      z-index: 1000;
+      width: 100dvw;
+      height: 100dvh;
+      border-radius: 0;
+    `;
+  }
+}
+
+const Wrapper = styled.div<{ $isFullscreen: boolean }>`
   width: 100%;
   max-height: 300px;
   justify-self: stretch;
@@ -30,6 +53,9 @@ const Wrapper = styled.div`
 
   /* Card Shadow */
   box-shadow: 6px 4px 16px 2px rgba(0, 0, 0, 0.25);
+
+  /* Fullscreen styles overwrite */
+  ${({ $isFullscreen }) => handleIsFullscreen($isFullscreen)}
 `;
 
 const CardTitle = styled.p`

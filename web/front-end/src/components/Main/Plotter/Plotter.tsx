@@ -1,4 +1,5 @@
 import Card from "@/shared/Cards/Card";
+import { useState } from "react";
 import {
   CartesianGrid,
   Legend,
@@ -12,24 +13,37 @@ import styled from "styled-components";
 
 import type { WebSocketData } from "@components/Main/Main";
 
+import FullscreenButton from "./FullscreenButton";
+import IconSrc from "./icon-fullscreen.svg";
+
 interface PlotterProps {
   data: WebSocketData[];
 }
 
 export default function Plotter({ data }: PlotterProps) {
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const Typed = createHorizontalChart<WebSocketData, string, number>()({
     Line,
     XAxis,
     YAxis,
   });
 
+  function handleButtonClick() {
+    setIsFullscreen(!isFullscreen);
+  }
+
   const cardContent = (
     <>
+      <FullscreenButton
+        $src={IconSrc}
+        $isFullscreen={isFullscreen}
+        onClick={handleButtonClick}
+      />
       <Typed.LineChart
-        style={{ width: "100%", height: "100%", alignSelf: "flex-end" }}
+        style={{ width: "90%", height: "100%", alignSelf: "flex-end" }}
         margin={{ right: 40, bottom: 10, top: 10 }}
         responsive
-        data={data.slice(-20)}
+        data={isFullscreen ? data.slice(-100) : data.slice(-20)}
       >
         <CartesianGrid />
         <Typed.XAxis dataKey="time" />
@@ -41,7 +55,11 @@ export default function Plotter({ data }: PlotterProps) {
     </>
   );
 
-  return <Wrapper title="Plotter">{cardContent}</Wrapper>;
+  return (
+    <Wrapper isFullscreen={isFullscreen} title="Plotter">
+      {cardContent}
+    </Wrapper>
+  );
 }
 
 const Wrapper = styled(Card)`
