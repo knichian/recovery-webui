@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import styled from "styled-components";
 
 import Maps from "./Maps/Maps";
+import MissionSelector from "./MissionSelector/MissionSelector";
 import Plotter from "./Plotter/Plotter";
 import RenderSocket from "./RenderSocket";
 
@@ -19,10 +20,13 @@ export interface WebSocketData {
   time: string;
 }
 
+export type SelectedMission = "" | "#11" | "#51" | "#213";
+
 const DATA_BUFFER_SIZE = 100;
 
 export default function Main() {
   const [data, setData] = useState<WebSocketData[]>([]);
+  const [selectedMission, setSelectedMission] = useState<SelectedMission>("");
 
   useEffect(() => {
     function handleEvent(payload: WebSocketData) {
@@ -50,6 +54,10 @@ export default function Main() {
 
   return (
     <Wrapper>
+      <MissionSelector
+        selectedMission={selectedMission}
+        setSelectedMission={setSelectedMission}
+      />
       <Cards>
         <Maps missionCoords={data} />
         <Plotter data={data} />
@@ -61,6 +69,8 @@ export default function Main() {
 
 const Wrapper = styled.main`
   flex: 1;
+  display: flex;
+  flex-direction: column;
   background:
     radial-gradient(
       62.14% 67.71% at 90.48% 74.59%,
