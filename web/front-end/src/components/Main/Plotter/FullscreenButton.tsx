@@ -3,9 +3,6 @@ import styled from "styled-components";
 export default styled.div<{ $src: string; $isFullscreen: boolean }>`
   width: 34px;
   aspect-ratio: 1/1;
-  position: absolute;
-  top: 40px;
-  left: 10px;
   user-select: none;
   border: 2px solid rgba(0, 0, 0, 0.2);
   border-radius: 4px;

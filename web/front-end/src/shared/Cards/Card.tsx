@@ -24,15 +24,13 @@ interface CardProps {
 function handleIsFullscreen(isFullscreen: boolean) {
   if (isFullscreen) {
     return `
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      max-height: unset;
+      position: fixed;
+      overflow: hidden;
+      inset: 0;
       z-index: 1000;
-      width: 100dvw;
-      height: 100dvh;
+      width: 100%;
+      height: 100%;
+      aspect-ratio: unset;
       border-radius: 0;
     `;
   }
@@ -40,12 +38,11 @@ function handleIsFullscreen(isFullscreen: boolean) {
 
 const Wrapper = styled.div<{ $isFullscreen: boolean }>`
   width: 100%;
-  max-height: 300px;
   justify-self: stretch;
   display: flex;
   flex-direction: column;
   align-items: center;
-  aspect-ratio: 1/1;
+  aspect-ratio: 2/3;
   border-radius: 20px;
   background: var(--superficie-invertida, #fff);
   position: relative;
@@ -53,6 +50,10 @@ const Wrapper = styled.div<{ $isFullscreen: boolean }>`
 
   /* Card Shadow */
   box-shadow: 6px 4px 16px 2px rgba(0, 0, 0, 0.25);
+
+  @media (min-width: 768px) {
+    aspect-ratio: 1/1;
+  }
 
   /* Fullscreen styles overwrite */
   ${({ $isFullscreen }) => handleIsFullscreen($isFullscreen)}

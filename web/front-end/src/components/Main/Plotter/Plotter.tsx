@@ -79,20 +79,10 @@ export default function Plotter({ data }: PlotterProps) {
 
   const cardContent = (
     <>
-      <FullscreenButton
-        $src={IconSrc}
-        $isFullscreen={isFullscreen}
-        onClick={handleButtonClick}
-      />
-      <GraphsFilterMenu
-        filter={curveProperties}
-        setFilter={setCurveProperties}
-      />
       <Typed.LineChart
         style={{
-          width: isFullscreen ? "90%" : "70%",
-          height: "100%",
-          alignSelf: "flex-end",
+          width: "100%",
+          height: isFullscreen ? "80%" : "100%",
         }}
         margin={{ right: 40, bottom: 10, top: 10 }}
         responsive
@@ -119,6 +109,17 @@ export default function Plotter({ data }: PlotterProps) {
         <Legend />
         <Tooltip isAnimationActive={false} />
       </Typed.LineChart>
+      <Controls>
+        <FullscreenButton
+          $src={IconSrc}
+          $isFullscreen={isFullscreen}
+          onClick={handleButtonClick}
+        />
+        <GraphsFilterMenu
+          filter={curveProperties}
+          setFilter={setCurveProperties}
+        />
+      </Controls>
     </>
   );
 
@@ -142,4 +143,10 @@ const Wrapper = styled(Card)`
     grid-row: 2 / span 1;
     grid-column: 1 / span 8;
   }
+`;
+
+const Controls = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
 `;
