@@ -1,9 +1,9 @@
 import styled from "styled-components";
 
-import type { webSocketData } from "@components/Main/Main";
+import type { WebSocketData } from "@components/Main/Main";
 
 interface RenderSocketProps {
-  data?: webSocketData[];
+  data: WebSocketData[];
 }
 
 export default function RenderSocket({ data }: RenderSocketProps) {

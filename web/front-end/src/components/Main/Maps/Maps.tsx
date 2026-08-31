@@ -8,11 +8,11 @@ import { FullscreenControl } from "react-leaflet-fullscreen";
 import "react-leaflet-fullscreen/styles.css";
 import styled from "styled-components";
 
-import type { webSocketData } from "@components/Main/Main";
+import type { WebSocketData } from "@components/Main/Main";
 import GyroscopeControl from "@components/Main/Maps/GyroscopeControls";
 import customIconSrc from "@components/Main/Maps/marker.svg";
 
-type CoordsString = Pick<webSocketData, "latitude" | "longitude">;
+type CoordsString = Pick<WebSocketData, "latitude" | "longitude">;
 type Coords = Record<keyof CoordsString, number>;
 
 interface MapsProps {

@@ -7,7 +7,7 @@ import Maps from "./Maps/Maps";
 import Plotter from "./Plotter/Plotter";
 import RenderSocket from "./RenderSocket";
 
-export interface webSocketData {
+export interface WebSocketData {
   [key: string]: string;
   latitude: string;
   longitude: string;
@@ -20,10 +20,10 @@ export interface webSocketData {
 }
 
 export default function Main() {
-  const [data, setData] = useState<webSocketData[]>();
+  const [data, setData] = useState<WebSocketData[]>([]);
 
   useEffect(() => {
-    function handleEvent(payload: webSocketData) {
+    function handleEvent(payload: WebSocketData) {
       if (data) {
         setData([...data, payload]);
       } else {
