@@ -23,6 +23,7 @@ interface CardProps {
 
 function handleIsFullscreen(isFullscreen: boolean) {
   if (isFullscreen) {
+    document.body.style.overflowY = "hidden";
     return `
       position: fixed;
       overflow: hidden;
