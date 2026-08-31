@@ -4,15 +4,17 @@ import type { SelectedMission } from "@components/Main/Main";
 
 interface MissionSelectorProps {
   selectedMission: SelectedMission;
-  setSelectedMission: React.SetStateAction<SelectedMission>;
+  setSelectedMission: React.Dispatch<React.SetStateAction<SelectedMission>>;
 }
 
 export default function MissionSelector({
   selectedMission,
   setSelectedMission,
 }: MissionSelectorProps) {
-  function handleChange(e) {
-    setSelectedMission(e.target.value);
+  function handleChange(
+    e: React.ChangeEvent<HTMLSelectElement, HTMLSelectElement>,
+  ) {
+    setSelectedMission(e.target.value as SelectedMission);
   }
 
   return (
