@@ -130,7 +130,7 @@ if not cli_mode:
     app = Flask(
         __name__,
         template_folder=os.path.join(web_dir, "templates"),
-        static_folder=os.path.join(web_dir, "static"),
+        static_folder=os.path.join(web_dir, "front-end", "dist"),
     )
     app.config["SESSION_COOKIE_PATH"] = "/"
 
