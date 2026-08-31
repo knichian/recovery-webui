@@ -34,6 +34,8 @@ function handleIsFullscreen(isFullscreen: boolean) {
       aspect-ratio: unset;
       border-radius: 0;
     `;
+  } else {
+    document.body.style.overflowY = "visible";
   }
 }
 
