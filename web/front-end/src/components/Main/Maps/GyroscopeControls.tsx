@@ -34,7 +34,7 @@ function GyroscopeControl({
     } else if (!CompassEvent.requestPermission) {
       setCompassRequestStatus("granted");
     }
-  }, []);
+  }, [CompassEvent, setCompassRequestStatus]);
 
   function handleClick() {
     if (!CompassEvent?.requestPermission) return;
