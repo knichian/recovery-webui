@@ -54,6 +54,7 @@ def _rocket_event(fields: dict, now: str) -> dict:
 
 def _sat_event(fields: dict, now: str) -> dict:
     return {
+        "team_id": fields["team_id"],
         "latitude": fields["lat"],
         "longitude": fields["lon"],
         "altura": fields["altp"],
@@ -129,6 +130,7 @@ def parse_packet(
     ) = fields
 
     return team_id, {
+        "team_id": team_id,
         "millis": millis,
         "count": count,
         "altp": altp,
