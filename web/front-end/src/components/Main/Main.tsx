@@ -50,7 +50,7 @@ export default function Main() {
     <Wrapper>
       <Cards>
         <Maps missionCoords={data} />
-        <Plotter />
+        <Plotter data={data} />
         <RenderSocket data={data} />
       </Cards>
     </Wrapper>
