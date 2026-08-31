@@ -3,28 +3,42 @@ import socket from "@/websocket/websocket";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 
-import Altitude from "./Altitude";
 import Maps from "./Maps/Maps";
+import Plotter from "./Plotter/Plotter";
 import RenderSocket from "./RenderSocket";
 
-export interface webSocketData {
-  [key: string]: number | string;
+export interface WebSocketData {
+  [key: string]: string | number | Date;
+  altura: number;
   latitude: number;
   longitude: number;
-  altura: number;
-  satelites: number;
-  temperatura: number;
   pressao: number;
   rssi: number;
+  satelites: number;
+  temperatura: number;
   time: string;
 }
 
+const DATA_BUFFER_SIZE = 100;
+
 export default function Main() {
-  const [data, setData] = useState<webSocketData>();
+  const [data, setData] = useState<WebSocketData[]>([]);
 
   useEffect(() => {
-    function handleEvent(payload: webSocketData) {
-      setData(payload);
+    function handleEvent(payload: WebSocketData) {
+      setData((prev) => [
+        ...prev.slice(-DATA_BUFFER_SIZE),
+        {
+          altura: Number(payload.altura),
+          latitude: Number(payload.latitude),
+          longitude: Number(payload.longitude),
+          pressao: Number(payload.pressao),
+          rssi: Number(payload.rssi),
+          satelites: Number(payload.satelites),
+          temperatura: Number(payload.altura),
+          time: new Date(payload.time).toTimeString().split(" ")[0],
+        },
+      ]);
     }
 
     socket.on("updateSat", handleEvent);
@@ -38,7 +52,7 @@ export default function Main() {
     <Wrapper>
       <Cards>
         <Maps missionCoords={data} />
-        <Altitude />
+        <Plotter data={data} />
         <RenderSocket data={data} />
       </Cards>
     </Wrapper>

@@ -1,9 +1,14 @@
 import type { PropsWithChildren } from "react";
 import styled from "styled-components";
 
-function Card({ title, children, className }: PropsWithChildren<CardProps>) {
+function Card({
+  title,
+  children,
+  className,
+  isFullscreen = false,
+}: PropsWithChildren<CardProps>) {
   return (
-    <Wrapper className={className}>
+    <Wrapper className={className} $isFullscreen={isFullscreen}>
       <CardTitle>{title}</CardTitle>
       {children}
     </Wrapper>
@@ -12,17 +17,33 @@ function Card({ title, children, className }: PropsWithChildren<CardProps>) {
 
 interface CardProps {
   title: string;
+  isFullscreen?: boolean;
   className?: string;
 }
 
-const Wrapper = styled.div`
+function handleIsFullscreen(isFullscreen: boolean) {
+  if (isFullscreen) {
+    document.body.style.overflowY = "hidden";
+    return `
+      position: fixed;
+      overflow: hidden;
+      inset: 0;
+      z-index: 1000;
+      width: 100%;
+      height: 100%;
+      aspect-ratio: unset;
+      border-radius: 0;
+    `;
+  }
+}
+
+const Wrapper = styled.div<{ $isFullscreen: boolean }>`
   width: 100%;
-  max-height: 300px;
   justify-self: stretch;
   display: flex;
   flex-direction: column;
   align-items: center;
-  aspect-ratio: 1/1;
+  aspect-ratio: 2/3;
   border-radius: 20px;
   background: var(--superficie-invertida, #fff);
   position: relative;
@@ -30,6 +51,13 @@ const Wrapper = styled.div`
 
   /* Card Shadow */
   box-shadow: 6px 4px 16px 2px rgba(0, 0, 0, 0.25);
+
+  @media (min-width: 768px) {
+    aspect-ratio: 1/1;
+  }
+
+  /* Fullscreen styles overwrite */
+  ${({ $isFullscreen }) => handleIsFullscreen($isFullscreen)}
 `;
 
 const CardTitle = styled.p`
