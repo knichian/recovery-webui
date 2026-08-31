@@ -8,11 +8,11 @@ interface RenderSocketProps {
 
 export default function RenderSocket({ data }: RenderSocketProps) {
   let cardContent: React.JSX.Element[] | undefined;
-  if (data) {
+  if (data.length > 0) {
     const lastData = data[data.length - 1];
     cardContent = Object.keys(lastData).map((key) => (
       <Data key={key}>
-        {key}: {lastData[key]}
+        {key}: {lastData[key].valueOf()}
       </Data>
     ));
   }

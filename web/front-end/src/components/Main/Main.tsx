@@ -8,14 +8,14 @@ import Plotter from "./Plotter/Plotter";
 import RenderSocket from "./RenderSocket";
 
 export interface WebSocketData {
-  [key: string]: string;
-  latitude: string;
-  longitude: string;
-  altura: string;
-  satelites: string;
-  temperatura: string;
-  pressao: string;
-  rssi: string;
+  [key: string]: string | number | Date;
+  altura: number;
+  latitude: number;
+  longitude: number;
+  pressao: number;
+  rssi: number;
+  satelites: number;
+  temperatura: number;
   time: string;
 }
 
@@ -24,11 +24,19 @@ export default function Main() {
 
   useEffect(() => {
     function handleEvent(payload: WebSocketData) {
-      if (data) {
-        setData([...data, payload]);
-      } else {
-        setData([payload]);
-      }
+      setData((prev) => [
+        ...prev,
+        {
+          altura: Number(payload.altura),
+          latitude: Number(payload.latitude),
+          longitude: Number(payload.longitude),
+          pressao: Number(payload.pressao),
+          rssi: Number(payload.rssi),
+          satelites: Number(payload.satelites),
+          temperatura: Number(payload.altura),
+          time: new Date(payload.time).toTimeString().split(" ")[0],
+        },
+      ]);
     }
 
     socket.on("updateSat", handleEvent);
