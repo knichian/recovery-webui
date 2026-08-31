@@ -19,13 +19,16 @@ export interface WebSocketData {
   time: string;
 }
 
+const DATA_BUFFER_SIZE = 100;
+
 export default function Main() {
   const [data, setData] = useState<WebSocketData[]>([]);
+  console.log(data.length);
 
   useEffect(() => {
     function handleEvent(payload: WebSocketData) {
       setData((prev) => [
-        ...prev,
+        ...prev.slice(-DATA_BUFFER_SIZE),
         {
           altura: Number(payload.altura),
           latitude: Number(payload.latitude),
