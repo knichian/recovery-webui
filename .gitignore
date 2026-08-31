@@ -47,6 +47,7 @@ components/*/hardware/_autosave-*
 # Flask
 instance/
 .webassets-cache
+web/static
 
 # Testing
 .pytest_cache/
