@@ -21,6 +21,7 @@ export interface WebSocketData {
   team_id: SelectedMission;
   temperatura: number;
   time: string;
+  umidade: number;
 }
 
 const DATA_BUFFER_SIZE = 100;
@@ -43,6 +44,7 @@ export default function Main() {
           team_id: payload.team_id,
           temperatura: Number(payload.altura),
           time: new Date(payload.time).toTimeString().split(" ")[0],
+          umidade: Number(payload.umidade),
         },
       ]);
     }
