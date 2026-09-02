@@ -40,6 +40,7 @@ CSV_HEADER = (
 TEAM_MAP: dict[str, tuple[str, Callable]] = {}
 
 
+# TODO: change this bellow
 def _rocket_event(fields: dict, now: str) -> dict:
     return {
         "latitude": fields["lat"],
@@ -52,6 +53,7 @@ def _rocket_event(fields: dict, now: str) -> dict:
     }
 
 
+# TODO: change this bellow
 def _sat_event(fields: dict, now: str) -> dict:
     return {
         "team_id": fields["team_id"],

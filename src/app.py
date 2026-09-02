@@ -27,6 +27,7 @@ import time
 from flask import Flask, render_template, request, send_from_directory
 from flask.app import cli
 from flask_socketio import SocketIO
+import serial
 from simple_term_menu import TerminalMenu
 
 from modules import BaseCom, FakeCom
@@ -147,6 +148,12 @@ else:
         )
         sys.exit(1)
     com = BaseCom(antenna_logger)
+
+    com.set_port(serial_port)
+    com.set_baudrate(serial_baudrate)
+    com.set_timeout(serial_timeout)
+    com.open()
+
 data_dir = os.path.join(os.path.dirname(__file__), "..", "data")
 receiver = Receiver(com, logger=antenna_logger, data_dir=data_dir)
 
