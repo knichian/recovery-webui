@@ -25,37 +25,68 @@ import sys
 import time
 
 from flask import Flask, render_template, request, send_from_directory
+from flask.app import cli
 from flask_socketio import SocketIO
 from simple_term_menu import TerminalMenu
 
 from modules import BaseCom, FakeCom
 from receiver import Receiver, CSV_HEADER, parse_packet
 
+import click
 
 # ══════════════════════════════════════════════════════════════════════════
 # Argumentos de linha de comando
 # ══════════════════════════════════════════════════════════════════════════
 
+serial_port: str = "ttyUSB"
+serial_baudrate: int = 115200
+serial_timeout: float = 1.0
 debug_mode = False
-simulation_mode = False
 cli_mode = False
+simulation_mode = False
 
-for arg in sys.argv[1:]:
-    if arg == "--help":
-        print(f"Uso: python {sys.argv[0]} [opcoes]")
-        print()
-        print("Opcoes:")
-        print("  --help        Exibe esta ajuda")
-        print("  --debug       Ativa logs detalhados (DEBUG)")
-        print("  --cli         Modo terminal interativo (sem web)")
-        print("  --simulation  Usa dados sinteticos (FakeCom)")
-        sys.exit(0)
-    elif arg == "--debug":
-        debug_mode = True
-    elif arg == "--cli":
-        cli_mode = True
-    elif arg == "--simulation":
-        simulation_mode = True
+@click.command()
+@click.option("-p", "--port",  default="ttyUSB", )
+@click.option("-b", "--baudrate", default=115200)
+@click.option("-t", "--timeout", default=1.0)
+@click.option("-d", "--debug", is_flag=True)
+@click.option("-T", "--tui", is_flag=True)
+@click.option("-S", "--simulation", is_flag=True)
+def cli_option_handler(port: str, baudrate: int, timeout: float, debug: bool, tui: bool, simulation: bool) -> None:
+
+    global serial_port
+    global serial_baudrate
+    global serial_timeout
+    global debug_mode
+    global cli_mode
+    global simulation_mode
+
+    serial_port = port
+    serial_baudrate = baudrate
+    serial_timeout = timeout
+    debug_mode = debug
+    cli_mode = tui
+    simulation_mode = simulation
+    return
+
+cli_option_handler()
+
+# for arg in sys.argv[1:]:
+#     if arg == "--help":
+#         print(f"Uso: python {sys.argv[0]} [opcoes]")
+#         print()
+#         print("Opcoes:")
+#         print("  --help        Exibe esta ajuda")
+#         print("  --debug       Ativa logs detalhados (DEBUG)")
+#         print("  --cli         Modo terminal interativo (sem web)")
+#         print("  --simulation  Usa dados sinteticos (FakeCom)")
+#         sys.exit(0)
+#     elif arg == "--debug":
+#         debug_mode = True
+#     elif arg == "--cli":
+#         cli_mode = True
+#     elif arg == "--simulation":
+#         simulation_mode = True
 
 # ══════════════════════════════════════════════════════════════════════════
 # Logging estruturado
