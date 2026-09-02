@@ -26,9 +26,9 @@ export default function MissionSelector({
         onChange={(e) => handleChange(e)}
       >
         <option value="">Selecione uma missão:</option>
-        <option value="#11">#11 Foguete principal</option>
-        <option value="#51">#51 Foguete Secundário</option>
-        <option value="#213">#213 Satélite</option>
+        <option value="#11">#11 Dédalo</option>
+        <option value="#51">#51 Thonyan</option>
+        <option value="#213">#213 Helike</option>
       </Select>
     </Wrapper>
   );
