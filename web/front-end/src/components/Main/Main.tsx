@@ -48,9 +48,11 @@ export default function Main() {
     }
 
     socket.on("updateSat", handleEvent);
+    socket.on("updateRocket", handleEvent);
 
     return () => {
       socket.off("updateSat", handleEvent);
+      socket.off("updateRocket", handleEvent);
     };
   }, []);
 
