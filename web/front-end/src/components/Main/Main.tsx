@@ -8,6 +8,8 @@ import MissionSelector from "./MissionSelector/MissionSelector";
 import Plotter from "./Plotter/Plotter";
 import RenderSocket from "./RenderSocket";
 
+export type SelectedMission = "" | "#11" | "#51" | "#213";
+
 export interface WebSocketData {
   [key: string]: string | number | Date;
   altura: number;
@@ -16,11 +18,11 @@ export interface WebSocketData {
   pressao: number;
   rssi: number;
   satelites: number;
+  team_id: SelectedMission;
   temperatura: number;
   time: string;
+  umidade: number;
 }
-
-export type SelectedMission = "" | "#11" | "#51" | "#213";
 
 const DATA_BUFFER_SIZE = 100;
 
@@ -39,18 +41,26 @@ export default function Main() {
           pressao: Number(payload.pressao),
           rssi: Number(payload.rssi),
           satelites: Number(payload.satelites),
+          team_id: payload.team_id,
           temperatura: Number(payload.altura),
           time: new Date(payload.time).toTimeString().split(" ")[0],
+          umidade: Number(payload.umidade),
         },
       ]);
     }
 
     socket.on("updateSat", handleEvent);
+    socket.on("updateRocket", handleEvent);
 
     return () => {
       socket.off("updateSat", handleEvent);
+      socket.off("updateRocket", handleEvent);
     };
   }, []);
+
+  const filteredData = data.filter(
+    (dataPoint) => dataPoint.team_id === selectedMission,
+  );
 
   return (
     <Wrapper>
@@ -58,11 +68,13 @@ export default function Main() {
         selectedMission={selectedMission}
         setSelectedMission={setSelectedMission}
       />
-      <Cards>
-        <Maps missionCoords={data} />
-        <Plotter data={data} />
-        <RenderSocket data={data} />
-      </Cards>
+      {selectedMission !== "" && filteredData.length > 0 && (
+        <Cards>
+          <Maps missionCoords={filteredData} />
+          <Plotter data={filteredData} />
+          <RenderSocket data={filteredData} />
+        </Cards>
+      )}
     </Wrapper>
   );
 }

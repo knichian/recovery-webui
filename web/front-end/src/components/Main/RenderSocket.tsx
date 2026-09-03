@@ -29,6 +29,7 @@ const Wrapper = styled.div`
   grid-row: span 1;
   grid-column: span 4;
   justify-self: stretch;
+  width: max-content;
 
   @media (min-width: 768px) {
     grid-row: 1 / span 2;
