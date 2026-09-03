@@ -21,7 +21,6 @@ interface MapsProps {
 
 export default function Maps({ missionCoords }: MapsProps) {
   const [userCoords, setUserCoords] = useState<Coords>();
-
   const { compassRequestStatus, setCompassRequestStatus } = useDeviceCompass();
 
   useEffect(() => {
@@ -51,45 +50,48 @@ export default function Maps({ missionCoords }: MapsProps) {
     const lastCoords = missionCoords[missionCoords.length - 1];
     const { latitude: missionLat, longitude: missionLong } = lastCoords;
 
-    cardContent = (
-      <MapContainer
-        center={[missionLat, missionLong]}
-        scrollWheelZoom={true}
-        zoomControl={false}
-        zoom={13}
-        minZoom={12}
-        maxZoom={16}
-        maxBounds={[
-          [missionLat - maxBoundOffset, missionLong - maxBoundOffset],
-          [missionLat + maxBoundOffset, missionLong + maxBoundOffset],
-        ]}
-      >
-        <TileLayer
-          attribution={
-            "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, " +
-            "USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, " +
-            "and the GIS User Community"
-          }
-          url="/ArcGIS/{z}/{x}/{y}.png"
-        />
-        <Marker position={[missionLat, missionLong]} icon={customIcon}>
-          <Popup>Posição da missão</Popup>
-        </Marker>
-        {userCoords && (
-          <Marker
-            position={[userCoords.latitude, userCoords.longitude]}
-            icon={customIcon}
-          >
-            <Popup>Você!</Popup>
+    if(!Number.isNan(latitude) && !Number.isNan(longitude)) {
+      cardContent = (
+        <MapContainer
+          center={[missionLat, missionLong]}
+          scrollWheelZoom={true}
+          zoomControl={false}
+          zoom={13}
+          minZoom={12}
+          maxZoom={16}
+          maxBounds={[
+            [missionLat - maxBoundOffset, missionLong - maxBoundOffset],
+            [missionLat + maxBoundOffset, missionLong + maxBoundOffset],
+          ]}
+        >
+          <TileLayer
+            attribution={
+              "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, " +
+              "USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, " +
+              "and the GIS User Community"
+            }
+            url="/ArcGIS/{z}/{x}/{y}.png"
+          />
+          <Marker position={[missionLat, missionLong]} icon={customIcon}>
+            <Popup>Posição da missão</Popup>
           </Marker>
-        )}
-        <FullscreenControl />
-        <GyroscopeControl
-          compassRequestStatus={compassRequestStatus}
-          setCompassRequestStatus={setCompassRequestStatus}
-        />
-      </MapContainer>
-    );
+          {userCoords && (
+            <Marker
+              position={[userCoords.latitude, userCoords.longitude]}
+              icon={customIcon}
+            >
+              <Popup>Você!</Popup>
+            </Marker>
+          )}
+          <FullscreenControl />
+          <GyroscopeControl
+            compassRequestStatus={compassRequestStatus}
+            setCompassRequestStatus={setCompassRequestStatus}
+          />
+        </MapContainer>
+      );
+    }
+
   }
 
   return <Wrapper title="Coordenadas">{cardContent}</Wrapper>;

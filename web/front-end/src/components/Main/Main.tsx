@@ -32,6 +32,7 @@ export default function Main() {
 
   useEffect(() => {
     function handleEvent(payload: WebSocketData) {
+      console.log(payload)
       setData((prev) => [
         ...prev.slice(-DATA_BUFFER_SIZE),
         {
