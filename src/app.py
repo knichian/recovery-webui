@@ -35,59 +35,37 @@ from receiver import Receiver, CSV_HEADER, parse_packet
 
 import click
 
+from time import sleep
+
 # ══════════════════════════════════════════════════════════════════════════
 # Argumentos de linha de comando
 # ══════════════════════════════════════════════════════════════════════════
 
-serial_port: str = "ttyUSB"
-serial_baudrate: int = 115200
-serial_timeout: float = 1.0
+# default_serial_port: str = "/dev/ttyUSB1"
+default_serial_baudrate: int = 115200
+default_serial_timeout: float = 1.0
+
 debug_mode = False
 cli_mode = False
 simulation_mode = False
 
-@click.command()
-@click.option("-p", "--port",  default="ttyUSB", )
-@click.option("-b", "--baudrate", default=115200)
-@click.option("-t", "--timeout", default=1.0)
-@click.option("-d", "--debug", is_flag=True)
-@click.option("-T", "--tui", is_flag=True)
-@click.option("-S", "--simulation", is_flag=True)
-def cli_option_handler(port: str, baudrate: int, timeout: float, debug: bool, tui: bool, simulation: bool) -> None:
 
-    global serial_port
-    global serial_baudrate
-    global serial_timeout
-    global debug_mode
-    global cli_mode
-    global simulation_mode
-
-    serial_port = port
-    serial_baudrate = baudrate
-    serial_timeout = timeout
-    debug_mode = debug
-    cli_mode = tui
-    simulation_mode = simulation
-    return
-
-cli_option_handler()
-
-# for arg in sys.argv[1:]:
-#     if arg == "--help":
-#         print(f"Uso: python {sys.argv[0]} [opcoes]")
-#         print()
-#         print("Opcoes:")
-#         print("  --help        Exibe esta ajuda")
-#         print("  --debug       Ativa logs detalhados (DEBUG)")
-#         print("  --cli         Modo terminal interativo (sem web)")
-#         print("  --simulation  Usa dados sinteticos (FakeCom)")
-#         sys.exit(0)
-#     elif arg == "--debug":
-#         debug_mode = True
-#     elif arg == "--cli":
-#         cli_mode = True
-#     elif arg == "--simulation":
-#         simulation_mode = True
+for arg in sys.argv[1:]:
+    if arg == "--help":
+        print(f"Uso: python {sys.argv[0]} [opcoes]")
+        print()
+        print("Opcoes:")
+        print("  --help        Exibe esta ajuda")
+        print("  --debug       Ativa logs detalhados (DEBUG)")
+        print("  --cli         Modo terminal interativo (sem web)")
+        print("  --simulation  Usa dados sinteticos (FakeCom)")
+        sys.exit(0)
+    elif arg == "--debug":
+        debug_mode = True
+    elif arg == "--cli":
+        cli_mode = True
+    elif arg == "--simulation":
+        simulation_mode = True
 
 # ══════════════════════════════════════════════════════════════════════════
 # Logging estruturado
@@ -149,10 +127,25 @@ else:
         sys.exit(1)
     com = BaseCom(antenna_logger)
 
-    com.set_port(serial_port)
-    com.set_baudrate(serial_baudrate)
-    com.set_timeout(serial_timeout)
-    com.open()
+
+# com.set_port(default_serial_port)
+com.set_port(com.get_port_options()[0])
+com.set_baudrate(default_serial_baudrate)
+com.set_timeout(default_serial_timeout)
+
+serial_retry_time = 1
+
+while True:
+    if not cli_mode: 
+        com.open()
+        main_logger.info(com.check_connected())
+        if com.check_connected() == False:
+            main_logger.error(f"conexão serial falhou, tentando novamente em {serial_retry_time}")
+            sleep(serial_retry_time)
+        else:
+            break
+    else:
+        break
 
 data_dir = os.path.join(os.path.dirname(__file__), "..", "data")
 receiver = Receiver(com, logger=antenna_logger, data_dir=data_dir)
